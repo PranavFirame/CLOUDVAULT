@@ -206,4 +206,4 @@ tar -xzvf cloudvault_objects_YYYYMMDD.tar.gz -C ./
 
 ## 8. License
 
-MIT License. Designed with highest-standard cryptographic engineering.
+@Pranav Firame License. Designed with highest-standard cryptographic engineering.
