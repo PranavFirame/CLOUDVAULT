@@ -12,7 +12,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`bg-slate-900/60 backdrop-blur-md border border-slate-800/80 hover:border-slate-700/80 rounded-xl p-5 shadow-xl shadow-black/40 transition-all duration-200 ${className}`}
+      className={`glass-panel rounded-2xl p-5 shadow-xl shadow-black/40 hover:border-slate-700/80 transition-all duration-200 ${className}`}
     >
       {children}
     </div>
@@ -36,7 +36,7 @@ export function CardTitle({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <h3 className={`text-sm font-semibold tracking-tight text-slate-100 ${className}`}>{children}</h3>;
+  return <h3 className={`text-base font-semibold text-slate-100 ${className}`}>{children}</h3>;
 }
 
 export function CardDescription({
@@ -46,6 +46,5 @@ export function CardDescription({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <p className={`text-xs text-slate-400 mt-1 leading-relaxed ${className}`}>{children}</p>;
+  return <p className={`text-xs text-slate-400 mt-0.5 ${className}`}>{children}</p>;
 }
-

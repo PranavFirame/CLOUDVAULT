@@ -65,10 +65,10 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 border-r border-slate-800/80 bg-[#080c14]/90 backdrop-blur-md flex flex-col justify-between p-4 shrink-0">
+    <aside className="w-64 border-r border-slate-800/80 bg-slate-950/40 backdrop-blur-xl flex flex-col justify-between p-4 shrink-0">
       <div className="space-y-1">
         <div className="px-3 py-2 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-widest">
-          Platform Workspace
+          SYSTEM NAVIGATION
         </div>
         {navItems.map((item) => {
           const isActive =
@@ -78,13 +78,13 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
                 isActive
-                  ? "bg-gradient-to-r from-sky-500/15 to-blue-500/5 text-sky-400 border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.12)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent"
+                  ? "bg-brand-500/15 text-brand-300 border border-brand-500/30 shadow-[0_0_12px_rgba(14,165,233,0.15)] font-semibold"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
               }`}
             >
-              <item.icon className={`w-4 h-4 ${isActive ? "text-sky-400" : "text-slate-400"}`} />
+              <item.icon className="w-4 h-4" />
               {item.name}
             </Link>
           );
@@ -92,12 +92,12 @@ export function Sidebar() {
       </div>
 
       {/* Storage Quota Card */}
-      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800/90 space-y-3 shadow-lg">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-          <span className="flex items-center gap-2">
-            <HardDrive className="w-3.5 h-3.5 text-sky-400" /> Local Storage
+      <div className="glass-panel p-4 rounded-2xl border-slate-800 space-y-3 shadow-md">
+        <div className="flex items-center justify-between text-xs font-medium text-slate-300">
+          <span className="flex items-center gap-1.5 font-semibold">
+            <HardDrive className="w-3.5 h-3.5 text-brand-400" /> Vault Storage
           </span>
-          <span className="text-sky-400 font-mono text-[11px] font-bold">
+          <span className="text-brand-400 font-mono text-[11px] font-semibold">
             {storageData.percentageUsed}%
           </span>
         </div>
