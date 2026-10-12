@@ -15,7 +15,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-medium text-slate-300"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300"
           >
             {label}
           </label>
@@ -23,14 +23,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           id={inputId}
           ref={ref}
-          className={`w-full bg-slate-900/90 border ${
-            error ? "border-rose-500/80 focus:ring-rose-500/40" : "border-slate-800 hover:border-slate-700 focus:border-brand-400 focus:ring-brand-400/25"
-          } text-slate-100 placeholder-slate-500 text-sm rounded-xl px-3.5 py-2.5 transition-all duration-150 focus:outline-none focus:ring-2 disabled:opacity-50 ${className}`}
+          className={`w-full bg-surface border ${
+            error
+              ? "border-rose-500 focus:ring-rose-500/20"
+              : "border-surface-border hover:border-slate-400 dark:hover:border-slate-600 focus:border-brand-500 focus:ring-brand-500/20"
+          } text-foreground placeholder-slate-400 text-sm rounded-lg px-3.5 py-2 transition-all duration-150 focus:outline-none focus:ring-2 disabled:opacity-50 ${className}`}
           {...props}
         />
-        {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
+        {error && <p className="text-xs text-rose-500 font-medium">{error}</p>}
         {helperText && !error && (
-          <p className="text-xs text-slate-500">{helperText}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{helperText}</p>
         )}
       </div>
     );

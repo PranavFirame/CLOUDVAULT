@@ -2,7 +2,12 @@
 
 import React from "react";
 import { VaultProvider } from "@/lib/crypto/vault-context";
+import { ThemeProvider } from "./theme-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <VaultProvider>{children}</VaultProvider>;
+  return (
+    <ThemeProvider>
+      <VaultProvider>{children}</VaultProvider>
+    </ThemeProvider>
+  );
 }

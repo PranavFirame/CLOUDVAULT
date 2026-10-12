@@ -9,10 +9,19 @@ import {
   ShieldCheck,
   Settings,
   HardDrive,
+  Star,
+  Trash2,
+  Share2,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
-export function Sidebar() {
+export function Sidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen?: boolean;
+  onClose?: () => void;
+}) {
   const pathname = usePathname();
   const [storageData, setStorageData] = useState<{
     usedBytes: number;
@@ -35,7 +44,7 @@ export function Sidebar() {
 
   const navItems = [
     {
-      name: "Dashboard",
+      name: "Overview",
       href: "/dashboard",
       icon: LayoutDashboard,
     },
@@ -50,7 +59,7 @@ export function Sidebar() {
       icon: ShieldCheck,
     },
     {
-      name: "Settings",
+      name: "Settings & Backup",
       href: "/dashboard/settings",
       icon: Settings,
     },
@@ -65,48 +74,66 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 border-r border-slate-800/80 bg-slate-950/40 backdrop-blur-xl flex flex-col justify-between p-4 shrink-0">
-      <div className="space-y-1">
-        <div className="px-3 py-2 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-widest">
-          SYSTEM NAVIGATION
-        </div>
-        {navItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/dashboard" && pathname.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                isActive
-                  ? "bg-brand-500/15 text-brand-300 border border-brand-500/30 shadow-[0_0_12px_rgba(14,165,233,0.15)] font-semibold"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-              }`}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </div>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+        />
+      )}
 
-      {/* Storage Quota Card */}
-      <div className="glass-panel p-4 rounded-2xl border-slate-800 space-y-3 shadow-md">
-        <div className="flex items-center justify-between text-xs font-medium text-slate-300">
-          <span className="flex items-center gap-1.5 font-semibold">
-            <HardDrive className="w-3.5 h-3.5 text-brand-400" /> Vault Storage
-          </span>
-          <span className="text-brand-400 font-mono text-[11px] font-semibold">
-            {storageData.percentageUsed}%
-          </span>
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-50 w-60 border-r border-surface-border bg-surface flex flex-col justify-between p-3 shrink-0 transform transition-transform duration-200 ease-in-out md:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="space-y-4">
+          <div className="px-3 pt-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            Workspace
+          </div>
+
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/dashboard" && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-surface-raised"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-        <Progress value={storageData.percentageUsed} max={100} />
-        <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-          <span>{formatSize(storageData.usedBytes)}</span>
-          <span className="text-slate-500">of {formatSize(storageData.quotaBytes)}</span>
+
+        {/* Storage Quota Card */}
+        <div className="p-3.5 rounded-xl bg-surface-raised border border-surface-border space-y-2.5">
+          <div className="flex items-center justify-between text-xs font-medium text-foreground">
+            <span className="flex items-center gap-1.5 text-xs font-semibold">
+              <HardDrive className="w-3.5 h-3.5 text-brand-500" /> Storage
+            </span>
+            <span className="text-slate-500 font-mono text-[11px]">
+              {storageData.percentageUsed}%
+            </span>
+          </div>
+          <Progress value={storageData.percentageUsed} max={100} />
+          <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <span>{formatSize(storageData.usedBytes)}</span>
+            <span>of {formatSize(storageData.quotaBytes)}</span>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

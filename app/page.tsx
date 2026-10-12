@@ -1,261 +1,209 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   Shield,
   Lock,
-  Key,
   HardDrive,
   Cpu,
   RefreshCw,
-  FileCheck,
   CheckCircle2,
-  Terminal,
   ArrowRight,
   Database,
   EyeOff,
   ServerOff,
-  Sparkles,
   Zap,
+  FolderLock,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  FileCheck,
+  Search,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { useTheme } from "@/components/theme-provider";
+import { Sun, Moon } from "lucide-react";
 
 export default function LandingPage() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      q: "How does CloudVault's zero-knowledge encryption work?",
+      a: "Before any file leaves your browser, your device generates a cryptographically random 256-bit AES-GCM file key. That key is wrapped with a purpose-specific key derived via HKDF from your Master Key. Your Master Key is decrypted strictly in browser RAM using Argon2id with your Vault Passphrase. The local server only stores opaque, unreadable ciphertext.",
+    },
+    {
+      q: "Can the server administrator or cloud host view my files?",
+      a: "No. The server never receives your Vault Passphrase, Master Key, or plaintext data. Even if someone obtains full root access to the database and filesystem, they will only see opaque binary objects with encrypted names and metadata.",
+    },
+    {
+      q: "What happens if I forget my Vault Passphrase?",
+      a: "During account initialization, CloudVault generates a high-entropy Emergency Recovery Secret. You can use this recovery secret to restore your Master Key and set a new passphrase without losing access to your encrypted files.",
+    },
+    {
+      q: "Does CloudVault require any paid cloud infrastructure?",
+      a: "None. CloudVault is designed to run entirely locally with ₹0 cloud expenses. It stores encrypted objects directly on your local filesystem with database persistence in PostgreSQL and Redis.",
+    },
+  ];
+
   return (
-    <div className="min-h-screen text-slate-100 flex flex-col selection:bg-brand-500 selection:text-white">
-      {/* Top Header */}
-      <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-50 px-6 py-4">
+    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-brand-500 selection:text-white">
+      {/* Top Navigation */}
+      <header className="border-b border-surface-border bg-surface/80 backdrop-blur-md sticky top-0 z-50 px-6 py-3.5 transition-colors">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500/20 to-sky-600/10 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-[0_0_15px_rgba(56,189,248,0.25)]">
-              <Shield className="w-6 h-6" />
+            <div className="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-extrabold text-lg tracking-tight text-white">
-                CLOUD<span className="text-brand-400">VAULT</span>
-              </span>
-              <span className="ml-2 text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 hidden sm:inline-block">
-                LOCAL-FIRST ZERO-KNOWLEDGE
+              <span className="font-bold text-lg tracking-tight text-foreground">
+                CLOUD<span className="text-brand-500">VAULT</span>
               </span>
             </div>
           </div>
 
+          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600 dark:text-slate-400 font-medium">
+            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+            <a href="#security" className="hover:text-foreground transition-colors">Security</a>
+            <a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a>
+            <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+          </nav>
+
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
+              title="Toggle theme"
+            >
+              {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             <Link
               href="/login"
-              className="text-xs font-semibold text-slate-300 hover:text-white transition-colors px-4 py-2 rounded-xl hover:bg-slate-800/80"
+              className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-foreground transition-colors px-3 py-2 rounded-lg hover:bg-surface-raised"
             >
               Sign In
             </Link>
             <Link
               href="/register"
-              className="text-xs font-semibold bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-400 hover:to-sky-500 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-brand-500/25 border border-brand-400/30 transition-all active:scale-95"
+              className="text-xs font-semibold bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-4 py-2 rounded-lg shadow-sm transition-all"
             >
-              Initialize Vault
+              Get Started Free
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-20 px-6 relative overflow-hidden">
-        <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-brand-500/30 text-brand-400 text-xs font-mono tracking-wide shadow-sm">
-            <Lock className="w-3.5 h-3.5" /> TRUE ZERO-KNOWLEDGE ARCHITECTURE • ₹0 CLOUD COSTS
+      <section className="pt-20 pb-16 px-6 text-center relative overflow-hidden">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-xs font-medium">
+            <Lock className="w-3.5 h-3.5" /> Zero-Knowledge Client-Side Encryption • Local-First
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1]">
-            Your Files. Your Keys. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-sky-300 to-blue-500">
-              Absolute Privacy.
-            </span>
+          <h1 className="text-4xl sm:text-6xl font-extrabold text-foreground tracking-tight leading-[1.15]">
+            Your files. Your privacy. <br />
+            <span className="text-brand-500">Your vault.</span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed">
-            CloudVault encrypts your files inside your browser using{" "}
-            <strong className="text-slate-200">AES-256-GCM</strong> and{" "}
-            <strong className="text-slate-200">Argon2id</strong> before bytes ever leave your device.
-            The local server only manages opaque, impenetrable ciphertext.
+          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+            Store, organize, and protect your files in one secure, beautifully simple workspace.
+            Files are encrypted with AES-256-GCM right in your browser before ever hitting the disk.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-400 hover:to-sky-500 text-white font-semibold text-sm shadow-xl shadow-brand-500/25 transition-all border border-brand-400/30 active:scale-95"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-medium text-sm shadow-sm transition-all"
             >
-              Initialize Local Vault <ArrowRight className="w-4 h-4" />
+              Get Started Free <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href="/login"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-semibold text-sm transition-all"
+            <a
+              href="#features"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-surface border border-surface-border text-foreground hover:bg-surface-raised font-medium text-sm transition-all"
             >
-              Unlock Existing Vault
-            </Link>
+              Explore Features
+            </a>
           </div>
 
-          {/* Cryptographic Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-8 text-xs font-mono text-slate-400">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-              <Zap className="w-3.5 h-3.5 text-brand-400" /> AES-256-GCM Payload Cipher
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-              <Cpu className="w-3.5 h-3.5 text-emerald-400" /> Argon2id Local Key Derivation
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-              <ServerOff className="w-3.5 h-3.5 text-sky-400" /> Zero Plaintext Storage
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Comparison Matrix: Traditional Cloud vs CloudVault */}
-      <section className="py-20 px-6 border-y border-slate-800/80 bg-slate-950/40 relative">
-        <div className="max-w-6xl mx-auto space-y-12">
-          <div className="text-center space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Why Zero-Knowledge Matters
-            </h2>
-            <p className="text-sm text-slate-400 max-w-xl mx-auto">
-              Compare conventional corporate cloud storage with CloudVault&apos;s local-first zero-knowledge security model.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Traditional Cloud */}
-            <div className="glass-panel rounded-2xl p-6 space-y-4 border-rose-500/20 relative">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <span className="font-bold text-slate-200 flex items-center gap-2">
-                  <EyeOff className="w-4 h-4 text-rose-400" /> Traditional Cloud Storage
-                </span>
-                <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  Third-Party Controlled
-                </span>
-              </div>
-              <ul className="space-y-3 text-xs text-slate-400 font-mono">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-rose-400 font-bold">✕</span>
-                  <span>Server holds encryption keys and can decrypt anytime</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-rose-400 font-bold">✕</span>
-                  <span>Files, thumbnails, and filenames indexed in plaintext</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-rose-400 font-bold">✕</span>
-                  <span>Subject to subpoena, vendor scraping, and server-side data leaks</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-rose-400 font-bold">✕</span>
-                  <span>Recurring monthly subscription fees</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* CloudVault */}
-            <div className="glass-panel-elevated rounded-2xl p-6 space-y-4 border-brand-500/30 glow-border-cyan relative">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <span className="font-bold text-white flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-brand-400" /> CloudVault Zero-Knowledge
-                </span>
-                <span className="text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/40 font-semibold">
-                  100% User Owned
-                </span>
-              </div>
-              <ul className="space-y-3 text-xs text-slate-300 font-mono">
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Files encrypted in browser before dispatching network requests</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>File names, folders, and MIME types stored as ciphertext</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Server possesses zero keys; decryption mathematically impossible for server</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Runs entirely on your machine via Docker with ₹0 cloud expenses</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Boundaries & Cryptographic Pipeline */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto space-y-12">
-          <div className="text-center space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Cryptographic Execution Pipeline
-            </h2>
-            <p className="text-sm text-slate-400 max-w-xl mx-auto">
-              How CloudVault enforces true zero-knowledge client-side encryption.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Browser Sandbox */}
-            <div className="glass-panel-elevated rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border-brand-500/30">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-sm">
-                  <Cpu className="w-5 h-5" />
+          {/* Product Dashboard Preview (Realistic UI Mockup) */}
+          <div className="pt-10 max-w-5xl mx-auto">
+            <div className="vault-card overflow-hidden rounded-xl border border-surface-border shadow-2xl bg-surface text-left">
+              {/* Fake Window Header */}
+              <div className="bg-surface-raised px-4 py-2.5 border-b border-surface-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-rose-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                  <span className="ml-2 text-xs font-mono text-slate-500 dark:text-slate-400">
+                    cloudvault://vault/files
+                  </span>
                 </div>
-                <div>
-                  <h3 className="font-bold text-white text-base">Client Browser Sandbox</h3>
-                  <p className="text-xs text-slate-400 font-mono">Web Crypto API • In-Memory Memory Isolation</p>
+                <div className="text-xs font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  AES-256-GCM ACTIVE
                 </div>
               </div>
 
-              <div className="space-y-2.5 text-xs text-slate-300 font-mono">
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>256-bit Master Key generated via cryptographically secure CSPRNG</span>
+              {/* Fake Dashboard Body */}
+              <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 bg-surface">
+                {/* Left Mini Sidebar */}
+                <div className="hidden md:block space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="px-3 py-2 font-semibold text-slate-700 dark:text-slate-200 bg-surface-raised rounded-lg flex items-center gap-2">
+                    <FolderLock className="w-4 h-4 text-brand-500" /> My Files
+                  </div>
+                  <div className="px-3 py-2 hover:bg-surface-raised rounded-lg flex items-center gap-2">
+                    <Layers className="w-4 h-4" /> Confidential Documents
+                  </div>
+                  <div className="px-3 py-2 hover:bg-surface-raised rounded-lg flex items-center gap-2">
+                    <HardDrive className="w-4 h-4" /> Financial Audits
+                  </div>
                 </div>
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>KEK derived via browser Argon2id (m=64MB, t=3, p=4)</span>
-                </div>
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Fresh 256-bit AES-GCM key and 96-bit nonce generated per file</span>
-                </div>
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>File metadata (name, mime, size) encrypted into client envelope</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Local Backend Server */}
-            <div className="glass-panel rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300">
-                  <HardDrive className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-base">Local Host Infrastructure</h3>
-                  <p className="text-xs text-slate-400 font-mono">PostgreSQL • Redis • Atomic Filesystem</p>
-                </div>
-              </div>
+                {/* Main Content Area */}
+                <div className="md:col-span-3 space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-surface-border">
+                    <div className="text-sm font-semibold text-foreground">Encrypted Objects</div>
+                    <div className="text-xs text-brand-600 dark:text-brand-400 font-mono">
+                      100% Client Encrypted
+                    </div>
+                  </div>
 
-              <div className="space-y-2.5 text-xs text-slate-300 font-mono">
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                  <span>Local filesystem (./data/objects/) persists opaque ciphertext only</span>
-                </div>
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                  <span>PostgreSQL persists hashed credentials & encrypted key envelopes</span>
-                </div>
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                  <span>Fail-safe sliding window rate limiting prevents brute-force</span>
-                </div>
-                <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                  <span>Loopback binding strictly to 127.0.0.1 for maximum attack surface defense</span>
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 bg-surface-raised rounded-lg flex items-center justify-between border border-surface-border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center text-brand-500 font-bold">
+                          PDF
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground">Annual_Audit_Report_2026.pdf</div>
+                          <div className="text-slate-500 text-[11px]">4.2 MB • Ciphertext ID: 8f9b...14a</div>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        VERIFIED
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-surface-raised rounded-lg flex items-center justify-between border border-surface-border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold">
+                          KEY
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground">Corporate_Master_Keys.kdbx</div>
+                          <div className="text-slate-500 text-[11px]">890 KB • Ciphertext ID: 3e1a...99b</div>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        VERIFIED
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -263,88 +211,202 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Core Security Features Grid */}
-      <section className="py-20 px-6 border-t border-slate-800/80 bg-slate-950/20">
+      {/* Features Section */}
+      <section id="features" className="py-20 px-6 border-t border-surface-border bg-surface-raised/40">
         <div className="max-w-6xl mx-auto space-y-12">
-          <div className="text-center space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Enterprise Defensive Engineering
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Built for Security, Simplicity, and Speed
             </h2>
-            <p className="text-sm text-slate-400 max-w-xl mx-auto">
-              Built according to rigorous modern cryptography standards.
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+              Enjoy the smooth usability of modern cloud drives with uncompromising mathematical protection.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="glass-panel rounded-2xl p-5 space-y-3 hover:border-brand-500/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400">
-                <Key className="w-5 h-5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="vault-card p-6 space-y-3 bg-surface">
+              <div className="w-10 h-10 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500">
+                <FolderLock className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-white text-base">Dual Credential Model</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Account password authenticates with the server; your vault passphrase unlocks encryption keys strictly in the browser.
+              <h3 className="font-semibold text-foreground text-base">Organized File & Folder Hierarchy</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Create nested directories, drag files, move items between folders, and rename files. Folder names are encrypted client-side with your Master Key.
               </p>
             </div>
 
-            <div className="glass-panel rounded-2xl p-5 space-y-3 hover:border-emerald-500/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <RefreshCw className="w-5 h-5" />
+            <div className="vault-card p-6 space-y-3 bg-surface">
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <Search className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-white text-base">HKDF File-Key Wrapping</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Every file generates a unique 256-bit AES-GCM key, wrapped using HKDF derived keys with contextual file ID binding.
+              <h3 className="font-semibold text-foreground text-base">Instant Client-Side Search</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Search, sort by file size or date, and filter through files instantaneously. Search happens entirely in browser memory on decrypted file metadata.
               </p>
             </div>
 
-            <div className="glass-panel rounded-2xl p-5 space-y-3 hover:border-sky-500/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <div className="vault-card p-6 space-y-3 bg-surface">
+              <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500">
                 <FileCheck className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-white text-base">Encrypted Metadata & Folders</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Original file names, folder names, MIME types, and sizes are encrypted before transmission. Server only stores opaque UUIDs.
+              <h3 className="font-semibold text-foreground text-base">In-Browser File Previews</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Preview images, view code files, and inspect document metadata directly in the browser after memory-safe decryption.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Security Architecture Section */}
+      <section id="security" className="py-20 px-6 border-t border-surface-border bg-surface">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Mathematical Zero-Knowledge Privacy
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+              Why CloudVault provides vastly stronger protection than traditional cloud storage.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="vault-card p-6 space-y-4 border-rose-500/20 bg-surface">
+              <div className="flex items-center justify-between pb-3 border-b border-surface-border">
+                <span className="font-bold text-foreground flex items-center gap-2">
+                  <EyeOff className="w-4 h-4 text-rose-500" /> Traditional Cloud Storage
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                  SERVER SEES ALL
+                </span>
+              </div>
+              <ul className="space-y-3 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                <li className="flex items-start gap-2">
+                  <span className="text-rose-500 font-bold">✕</span>
+                  <span>Server possesses decryption keys and reads file contents</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-rose-500 font-bold">✕</span>
+                  <span>Filenames and documents indexed for ads, scanning, and AI training</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-rose-500 font-bold">✕</span>
+                  <span>Subject to third-party data breaches and subpoenas</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="vault-card p-6 space-y-4 border-brand-500/30 bg-surface shadow-md">
+              <div className="flex items-center justify-between pb-3 border-b border-surface-border">
+                <span className="font-bold text-foreground flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-brand-500" /> CloudVault Zero-Knowledge
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold">
+                  MATHEMATICALLY PRIVATE
+                </span>
+              </div>
+              <ul className="space-y-3 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Files encrypted with fresh AES-256-GCM keys before upload</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Filenames, sizes, and folder trees stored strictly as ciphertext</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Server possesses zero keys; decryption mathematically impossible for server</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 px-6 border-t border-surface-border bg-surface-raised/30">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              How CloudVault Works
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+              Three seamless steps from your file picker to authenticated encrypted storage.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="vault-card p-6 space-y-3 bg-surface">
+              <div className="text-2xl font-bold text-brand-500 font-mono">01</div>
+              <h3 className="font-semibold text-foreground text-sm">Unlock Your Vault</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Enter your Vault Passphrase. The browser derives your Key-Encryption Key using Argon2id and unseals your Master Key in transient RAM.
               </p>
             </div>
 
-            <div className="glass-panel rounded-2xl p-5 space-y-3 hover:border-purple-500/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                <Shield className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-white text-base">High-Entropy Recovery Secret</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Generate an independent recovery secret during vault setup to restore access and rotate passphrases safely.
+            <div className="vault-card p-6 space-y-3 bg-surface">
+              <div className="text-2xl font-bold text-brand-500 font-mono">02</div>
+              <h3 className="font-semibold text-foreground text-sm">Browser Encrypts Bytes</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                When you drag or select a file, a unique 256-bit AES-GCM key is generated. The file is encrypted and wrapped with HKDF before leaving your device.
               </p>
             </div>
 
-            <div className="glass-panel rounded-2xl p-5 space-y-3 hover:border-amber-500/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <Terminal className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-white text-base">Local Docker Infrastructure</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Powered by PostgreSQL and Redis bound strictly to loopback (127.0.0.1), keeping data on your machine with ₹0 cloud bills.
+            <div className="vault-card p-6 space-y-3 bg-surface">
+              <div className="text-2xl font-bold text-brand-500 font-mono">03</div>
+              <h3 className="font-semibold text-foreground text-sm">Opaque Local Storage</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                The local application stores only the ciphertext object in `./data/objects/` under an opaque ID. Zero plaintext is ever written to disk.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="glass-panel rounded-2xl p-5 space-y-3 hover:border-rose-500/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
-                <HardDrive className="w-5 h-5" />
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 px-6 border-t border-surface-border bg-surface">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Clear answers regarding security, recovery, and architecture.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq, idx) => (
+              <div key={idx} className="vault-card bg-surface overflow-hidden">
+                <button
+                  onClick={() => toggleFaq(idx)}
+                  className="w-full p-4 text-left text-sm font-semibold text-foreground flex items-center justify-between hover:bg-surface-raised transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  {openFaq === idx ? (
+                    <ChevronUp className="w-4 h-4 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
+                {openFaq === idx && (
+                  <div className="px-4 pb-4 pt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed border-t border-surface-border/50">
+                    {faq.a}
+                  </div>
+                )}
               </div>
-              <h3 className="font-bold text-white text-base">Atomic Object Storage</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Encrypted uploads are written with temporary random suffixes, verified for byte count integrity, and atomically renamed.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-800/80 py-8 px-6 bg-slate-950/70">
+      <footer className="mt-auto border-t border-surface-border py-10 px-6 bg-surface-raised">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-brand-400" />
-            <span className="text-slate-400 font-semibold">CloudVault — Local-First Zero-Knowledge Encrypted Storage</span>
+            <Shield className="w-4 h-4 text-brand-500" />
+            <span className="font-semibold text-foreground">CloudVault</span>
+            <span>— Premium Zero-Knowledge Encrypted Cloud Storage</span>
           </div>
           <div className="font-mono text-[11px]">
             AES-256-GCM • Argon2id • HKDF-SHA256 • ₹0 Cloud Infrastructure

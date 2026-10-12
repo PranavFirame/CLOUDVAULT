@@ -20,25 +20,25 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#080c14] disabled:opacity-50 disabled:pointer-events-none select-none";
+      "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:pointer-events-none select-none text-sm";
 
     const variantStyles = {
       primary:
-        "bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-400 hover:to-sky-500 text-white shadow-lg shadow-brand-500/25 border border-brand-400/30 focus:ring-brand-400",
+        "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white shadow-sm border border-brand-600/30",
       secondary:
-        "bg-slate-800/80 hover:bg-slate-700/90 text-slate-200 border border-slate-700/80 hover:border-slate-600 focus:ring-slate-500 shadow-sm",
+        "bg-surface-raised hover:bg-slate-200 dark:hover:bg-slate-700/80 text-foreground border border-surface-border shadow-sm",
       outline:
-        "border border-brand-500/40 text-brand-400 hover:bg-brand-500/10 hover:border-brand-400 focus:ring-brand-500",
+        "border border-surface-border text-foreground hover:bg-surface-raised",
       danger:
-        "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white focus:ring-red-500 shadow-lg shadow-rose-900/30 border border-rose-500/30",
+        "bg-rose-600 hover:bg-rose-700 text-white shadow-sm border border-rose-700/30",
       ghost:
-        "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 focus:ring-slate-400",
+        "text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-surface-raised",
     };
 
     const sizeStyles = {
-      sm: "px-3 py-1.5 text-xs gap-1.5",
-      md: "px-4 py-2 text-sm gap-2",
-      lg: "px-6 py-2.5 text-base gap-2.5",
+      sm: "px-2.5 py-1.5 text-xs gap-1.5",
+      md: "px-3.5 py-2 text-sm gap-2",
+      lg: "px-5 py-2.5 text-base gap-2.5",
     };
 
     return (

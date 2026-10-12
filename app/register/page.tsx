@@ -12,15 +12,19 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { VaultProvider, useVault } from "@/lib/crypto/vault-context";
+import { useVault } from "@/lib/crypto/vault-context";
+import { useTheme } from "@/components/theme-provider";
 
-function RegisterForm() {
+export default function RegisterPage() {
   const router = useRouter();
   const { initializeVault } = useVault();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,8 +73,7 @@ function RegisterForm() {
         throw new Error(regData.error || "Failed to create account.");
       }
 
-      // 2. Client-side Vault Initialization:
-      // Derives KEK via Argon2id, generates Master Key, encrypts envelope, derives Recovery Secret
+      // 2. Client-side Vault Initialization
       const initResult = await initializeVault(vaultPassphrase);
       setRecoverySecret(initResult.recoverySecret);
     } catch (err: unknown) {
@@ -92,7 +95,7 @@ RECOVERY SECRET:
 ${recoverySecret}
 
 SECURITY WARNING:
-- Store this code offline in a secure location (e.g., password manager, safe deposit).
+- Store this code offline in a secure location (e.g. password manager, safe deposit).
 - This secret can restore your master encryption key if you forget your vault passphrase.
 - CloudVault server NEVER possesses this recovery key or your vault passphrase.
 - If you lose both your vault passphrase and this recovery secret, your encrypted files CANNOT be recovered by anyone.
@@ -114,170 +117,190 @@ SECURITY WARNING:
     router.replace("/dashboard");
   };
 
-  if (recoverySecret) {
-    return (
-      <Card className="max-w-xl w-full p-8 space-y-6 border-brand-500/40 shadow-2xl">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center">
-            <Key className="w-6 h-6" />
-          </div>
-          <h2 className="text-xl font-bold text-white">Save Your Recovery Secret</h2>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
-            This is the <strong className="text-slate-200">only time</strong> your recovery secret will be displayed. You will need it if you ever forget your vault passphrase.
-          </p>
-        </div>
-
-        <div className="p-4 bg-slate-900 border border-surface-border rounded-xl space-y-2">
-          <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500">
-            Emergency Master Recovery Secret
-          </div>
-          <div className="font-mono text-base font-bold text-brand-300 tracking-wider break-all select-all py-1">
-            {recoverySecret}
-          </div>
-        </div>
-
-        <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-xs text-amber-300">
-          <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
-          <p>
-            CloudVault uses zero-knowledge cryptography. Our server has <strong>no copy</strong> of this recovery key. If you lose both your vault passphrase and this secret, your files will be permanently lost.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={downloadRecoveryFile}
-            className="flex-1"
-          >
-            <Download className="w-4 h-4 mr-2" /> Download Recovery File (.txt)
-          </Button>
-
-          <Button
-            type="button"
-            variant="primary"
-            disabled={!hasSavedRecovery}
-            onClick={handleFinishSetup}
-            className="flex-1"
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" /> Proceed to Vault
-          </Button>
-        </div>
-
-        {!hasSavedRecovery && (
-          <p className="text-center text-[11px] text-slate-500">
-            Click &ldquo;Download Recovery File&rdquo; to enable proceeding.
-          </p>
-        )}
-      </Card>
-    );
-  }
-
   return (
-    <Card className="max-w-md w-full p-8 space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/30 text-brand-400 mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(56,189,248,0.2)]">
-          <Shield className="w-6 h-6" />
-        </div>
-        <h1 className="text-xl font-bold text-white tracking-tight">Create CloudVault Account</h1>
-        <p className="text-xs text-slate-400">
-          Setup your local account & zero-knowledge client encryption
-        </p>
-      </div>
-
-      {error && (
-        <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleRegister} className="space-y-4">
-        <Input
-          label="Email Address"
-          type="email"
-          required
-          placeholder="developer@local"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <label className="block text-xs font-medium text-slate-300">
-              Account Password (Server Login)
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowPasswords(!showPasswords)}
-              className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1"
-            >
-              {showPasswords ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              {showPasswords ? "Hide" : "Show"}
-            </button>
+    <div className="min-h-screen bg-background flex flex-col justify-between p-4 selection:bg-brand-500 selection:text-white">
+      {/* Top Header */}
+      <div className="max-w-7xl w-full mx-auto flex items-center justify-between p-2">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500">
+            <Shield className="w-4 h-4" />
           </div>
-          <Input
-            type={showPasswords ? "text" : "password"}
-            required
-            placeholder="Min. 10 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            helperText="Hashed on server with Argon2id / scrypt"
-          />
-        </div>
-
-        <div className="pt-2 border-t border-surface-border/60 space-y-3">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-brand-400" />
-            <span className="text-xs font-semibold text-slate-200 uppercase tracking-wide">
-              Client-Side Encryption Passphrase
-            </span>
-          </div>
-
-          <Input
-            label="Vault Passphrase (Never sent to server)"
-            type={showPasswords ? "text" : "password"}
-            required
-            placeholder="Min. 12 characters (keep memorable)"
-            value={vaultPassphrase}
-            onChange={(e) => setVaultPassphrase(e.target.value)}
-            helperText="Used strictly in your browser to derive Master Key"
-          />
-
-          <Input
-            label="Confirm Vault Passphrase"
-            type={showPasswords ? "text" : "password"}
-            required
-            placeholder="Repeat vault passphrase"
-            value={confirmVaultPassphrase}
-            onChange={(e) => setConfirmVaultPassphrase(e.target.value)}
-          />
-        </div>
-
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          className="w-full mt-4"
-          isLoading={isLoading}
-        >
-          Initialize Encrypted Vault
-        </Button>
-      </form>
-
-      <div className="text-center text-xs text-slate-400 pt-2 border-t border-surface-border/60">
-        Already have a vault?{" "}
-        <Link href="/login" className="text-brand-400 hover:text-brand-300 font-medium">
-          Sign In
+          <span className="font-bold text-base tracking-tight text-foreground">
+            CLOUD<span className="text-brand-500">VAULT</span>
+          </span>
         </Link>
+        <button
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          className="p-2 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
+          title="Toggle theme"
+        >
+          {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
       </div>
-    </Card>
-  );
-}
 
-export default function RegisterPage() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <RegisterForm />
+      {/* Main Content */}
+      <div className="flex items-center justify-center py-8">
+        {recoverySecret ? (
+          <Card className="max-w-lg w-full p-8 space-y-6 shadow-2xl">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mx-auto flex items-center justify-center">
+                <Key className="w-6 h-6" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground">Save Your Recovery Secret</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                This is the <strong className="text-foreground">only time</strong> your recovery secret will be displayed.
+              </p>
+            </div>
+
+            <div className="p-4 bg-surface-raised border border-surface-border rounded-xl space-y-1.5">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                Emergency Master Recovery Secret
+              </div>
+              <div className="font-mono text-base font-bold text-brand-500 tracking-wider break-all select-all py-1">
+                {recoverySecret}
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-xs text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <p>
+                Our server has <strong>no copy</strong> of this key. If you lose both your vault passphrase and this secret, files cannot be recovered.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={downloadRecoveryFile}
+                className="flex-1"
+              >
+                <Download className="w-4 h-4 mr-2" /> Download File (.txt)
+              </Button>
+
+              <Button
+                type="button"
+                variant="primary"
+                disabled={!hasSavedRecovery}
+                onClick={handleFinishSetup}
+                className="flex-1"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" /> Proceed to Vault
+              </Button>
+            </div>
+
+            {!hasSavedRecovery && (
+              <p className="text-center text-[11px] text-slate-400">
+                Please download your recovery file to unlock the &ldquo;Proceed&rdquo; button.
+              </p>
+            )}
+          </Card>
+        ) : (
+          <Card className="max-w-md w-full p-8 space-y-6 shadow-xl">
+            <div className="text-center space-y-1.5">
+              <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-500 mx-auto flex items-center justify-center">
+                <Shield className="w-5 h-5" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">Create CloudVault Account</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Two-tier zero-knowledge credential setup
+              </p>
+            </div>
+
+            {error && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs text-rose-600 dark:text-rose-400">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleRegister} className="space-y-4">
+              <Input
+                label="Email Address"
+                type="email"
+                required
+                autoFocus
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Account Password (Login)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords(!showPasswords)}
+                    className="text-[11px] text-slate-500 hover:text-foreground flex items-center gap-1"
+                  >
+                    {showPasswords ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    {showPasswords ? "Hide" : "Show"}
+                  </button>
+                </div>
+                <Input
+                  type={showPasswords ? "text" : "password"}
+                  required
+                  placeholder="Min. 10 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  helperText="Hashed on server with Argon2id"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-surface-border space-y-3">
+                <div className="flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-brand-500" />
+                  <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                    Vault Encryption Passphrase
+                  </span>
+                </div>
+
+                <Input
+                  label="Vault Passphrase (Never sent to server)"
+                  type={showPasswords ? "text" : "password"}
+                  required
+                  placeholder="Min. 12 characters"
+                  value={vaultPassphrase}
+                  onChange={(e) => setVaultPassphrase(e.target.value)}
+                  helperText="Derives your Master Encryption Key client-side"
+                />
+
+                <Input
+                  label="Confirm Vault Passphrase"
+                  type={showPasswords ? "text" : "password"}
+                  required
+                  placeholder="Repeat vault passphrase"
+                  value={confirmVaultPassphrase}
+                  onChange={(e) => setConfirmVaultPassphrase(e.target.value)}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full mt-2"
+                isLoading={isLoading}
+              >
+                Create Account & Initialize Vault
+              </Button>
+            </form>
+
+            <div className="text-center text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-surface-border">
+              Already have an account?{" "}
+              <Link href="/login" className="text-brand-500 hover:underline font-semibold">
+                Sign In
+              </Link>
+            </div>
+          </Card>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="text-center text-xs text-slate-400 py-3">
+        Zero-Knowledge Encrypted • Separate Account & Encryption Credentials
+      </div>
     </div>
   );
 }

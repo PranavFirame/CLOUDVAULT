@@ -113,6 +113,13 @@ interface VaultContextType {
     encryptedFolderName: string;
     nameNonce: string;
   }>;
+  createEncryptedFileRenamePayload: (
+    file: DecryptedFileInfo,
+    newName: string
+  ) => Promise<{
+    encryptedMetadata: string;
+    metadataNonce: string;
+  }>;
 }
 
 const VaultContext = createContext<VaultContextType | null>(null);
@@ -502,6 +509,20 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     [masterKey]
   );
 
+  const createEncryptedFileRenamePayload = useCallback(
+    async (file: DecryptedFileInfo, newName: string) => {
+      if (!masterKey) throw new Error("Vault is locked. Unlock vault to rename file.");
+      const updatedMetadata = {
+        name: newName,
+        size: file.size,
+        type: file.type,
+        lastModified: Date.now(),
+      };
+      return await encryptMetadata(updatedMetadata, masterKey);
+    },
+    [masterKey]
+  );
+
   return (
     <VaultContext.Provider
       value={{
@@ -520,6 +541,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         decryptFileMetadataItem,
         decryptFolderItem,
         createEncryptedFolderPayload,
+        createEncryptedFileRenamePayload,
       }}
     >
       {children}
