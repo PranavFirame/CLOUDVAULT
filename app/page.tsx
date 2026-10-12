@@ -297,7 +297,7 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="vault-card p-6 space-y-4 border-[rgba(240,158,79,0.35)] shadow-glow">
+            <div className="vault-card p-6 space-y-4 border-[rgba(240,158,79,0.35)] dark:shadow-glow shadow-md">
               <div className="flex items-center justify-between pb-3 border-b border-surface-border">
                 <span className="font-bold text-foreground flex items-center gap-2">
                   <Shield className="w-4 h-4 text-[rgb(240_158_79)]" /> CloudVault Zero-Knowledge

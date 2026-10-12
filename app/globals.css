@@ -45,8 +45,14 @@ body {
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--surface-border);
   border-radius: 1rem;
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vault-card:hover {
+  border-color: rgba(161, 161, 170, 0.5);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
 }
 
 .dark .vault-card {
@@ -54,7 +60,7 @@ body {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.vault-card:hover {
+.dark .vault-card:hover {
   border-color: rgba(240, 158, 79, 0.4);
   box-shadow: 0 16px 40px -4px rgba(240, 158, 79, 0.15);
   transform: translateY(-2px);
