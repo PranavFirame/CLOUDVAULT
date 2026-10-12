@@ -116,30 +116,30 @@ SECURITY WARNING:
 
   if (recoverySecret) {
     return (
-      <Card className="max-w-xl w-full p-8 space-y-6 border-brand-500/40 shadow-2xl">
+      <Card className="max-w-xl w-full p-8 space-y-6 border-sky-500/40 bg-[#0a0f1d]/95 shadow-2xl relative">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.2)]">
             <Key className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-bold text-white">Save Your Recovery Secret</h2>
+          <h2 className="text-lg font-bold text-white tracking-tight">Save Your Emergency Recovery Secret</h2>
           <p className="text-xs text-slate-400 max-w-md mx-auto">
             This is the <strong className="text-slate-200">only time</strong> your recovery secret will be displayed. You will need it if you ever forget your vault passphrase.
           </p>
         </div>
 
-        <div className="p-4 bg-slate-900 border border-surface-border rounded-xl space-y-2">
-          <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500">
+        <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
             Emergency Master Recovery Secret
           </div>
-          <div className="font-mono text-base font-bold text-brand-300 tracking-wider break-all select-all py-1">
+          <div className="font-mono text-sm sm:text-base font-bold text-sky-400 tracking-wider break-all select-all py-1">
             {recoverySecret}
           </div>
         </div>
 
         <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-xs text-amber-300">
           <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
-          <p>
-            CloudVault uses zero-knowledge cryptography. Our server has <strong>no copy</strong> of this recovery key. If you lose both your vault passphrase and this secret, your files will be permanently lost.
+          <p className="leading-relaxed">
+            CloudVault uses zero-knowledge cryptography. Our local server has <strong>no copy</strong> of this recovery key. If you lose both your vault passphrase and this secret, your files will be permanently lost.
           </p>
         </div>
 
@@ -150,7 +150,7 @@ SECURITY WARNING:
             onClick={downloadRecoveryFile}
             className="flex-1"
           >
-            <Download className="w-4 h-4 mr-2" /> Download Recovery File (.txt)
+            <Download className="w-4 h-4 mr-2 text-sky-400" /> Download Key File (.txt)
           </Button>
 
           <Button
@@ -165,8 +165,8 @@ SECURITY WARNING:
         </div>
 
         {!hasSavedRecovery && (
-          <p className="text-center text-[11px] text-slate-500">
-            Click &ldquo;Download Recovery File&rdquo; to enable proceeding.
+          <p className="text-center text-[11px] text-slate-400 font-mono">
+            Click &ldquo;Download Key File&rdquo; to enable proceeding.
           </p>
         )}
       </Card>
@@ -174,19 +174,19 @@ SECURITY WARNING:
   }
 
   return (
-    <Card className="max-w-md w-full p-8 space-y-6">
+    <Card className="max-w-md w-full p-8 space-y-6 border-slate-800 bg-[#0a0f1d]/90 shadow-2xl relative">
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/30 text-brand-400 mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-600/10 border border-sky-400/30 text-sky-400 mx-auto flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.2)]">
           <Shield className="w-6 h-6" />
         </div>
-        <h1 className="text-xl font-bold text-white tracking-tight">Create CloudVault Account</h1>
+        <h1 className="text-lg font-bold text-white tracking-tight">Create CloudVault Account</h1>
         <p className="text-xs text-slate-400">
           Setup your local account & zero-knowledge client encryption
         </p>
       </div>
 
       {error && (
-        <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+        <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 font-medium">
           {error}
         </div>
       )}
@@ -209,7 +209,7 @@ SECURITY WARNING:
             <button
               type="button"
               onClick={() => setShowPasswords(!showPasswords)}
-              className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1"
+              className="text-[11px] text-slate-400 hover:text-sky-400 transition-colors flex items-center gap-1 font-mono"
             >
               {showPasswords ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
               {showPasswords ? "Hide" : "Show"}
@@ -225,22 +225,22 @@ SECURITY WARNING:
           />
         </div>
 
-        <div className="pt-2 border-t border-surface-border/60 space-y-3">
+        <div className="pt-2 border-t border-slate-800 space-y-3">
           <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-brand-400" />
-            <span className="text-xs font-semibold text-slate-200 uppercase tracking-wide">
+            <Lock className="w-3.5 h-3.5 text-sky-400" />
+            <span className="text-[11px] font-semibold text-slate-200 uppercase tracking-wider font-mono">
               Client-Side Encryption Passphrase
             </span>
           </div>
 
           <Input
-            label="Vault Passphrase (Never sent to server)"
+            label="Vault Passphrase (Never leaves your browser)"
             type={showPasswords ? "text" : "password"}
             required
             placeholder="Min. 12 characters (keep memorable)"
             value={vaultPassphrase}
             onChange={(e) => setVaultPassphrase(e.target.value)}
-            helperText="Used strictly in your browser to derive Master Key"
+            helperText="Derives 256-bit Master Key in browser memory"
           />
 
           <Input
@@ -257,16 +257,16 @@ SECURITY WARNING:
           type="submit"
           variant="primary"
           size="lg"
-          className="w-full mt-4"
+          className="w-full mt-2"
           isLoading={isLoading}
         >
           Initialize Encrypted Vault
         </Button>
       </form>
 
-      <div className="text-center text-xs text-slate-400 pt-2 border-t border-surface-border/60">
+      <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
         Already have a vault?{" "}
-        <Link href="/login" className="text-brand-400 hover:text-brand-300 font-medium">
+        <Link href="/login" className="text-sky-400 hover:text-sky-300 font-semibold transition-colors">
           Sign In
         </Link>
       </div>
@@ -276,7 +276,7 @@ SECURITY WARNING:
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#080c14] cyber-grid-bg flex items-center justify-center p-4">
       <RegisterForm />
     </div>
   );

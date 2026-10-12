@@ -61,40 +61,40 @@ function RecoveryForm() {
 
   if (success) {
     return (
-      <Card className="max-w-md w-full p-8 space-y-6 text-center">
-        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center">
+      <Card className="max-w-md w-full p-8 space-y-6 text-center border-emerald-500/30 bg-[#0a0f1d]/95 shadow-2xl relative">
+        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.2)]">
           <CheckCircle2 className="w-6 h-6" />
         </div>
-        <h2 className="text-xl font-bold text-white">Vault Successfully Recovered!</h2>
-        <p className="text-xs text-slate-400">
+        <h2 className="text-lg font-bold text-white tracking-tight">Vault Successfully Recovered!</h2>
+        <p className="text-xs text-slate-400 leading-relaxed">
           Your Master Key has been re-encrypted with your new passphrase. All previously uploaded encrypted files remain 100% accessible.
         </p>
-        <div className="text-xs font-mono text-brand-400">Redirecting to Dashboard...</div>
+        <div className="text-xs font-mono text-sky-400 font-semibold animate-pulse">Redirecting to Dashboard...</div>
       </Card>
     );
   }
 
   return (
-    <Card className="max-w-md w-full p-8 space-y-6">
+    <Card className="max-w-md w-full p-8 space-y-6 border-slate-800 bg-[#0a0f1d]/90 shadow-2xl relative">
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+        <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.2)]">
           <KeyRound className="w-6 h-6" />
         </div>
-        <h1 className="text-xl font-bold text-white tracking-tight">Recover Encrypted Vault</h1>
+        <h1 className="text-lg font-bold text-white tracking-tight">Recover Encrypted Vault</h1>
         <p className="text-xs text-slate-400">
           Restore your Master Key using your Emergency Recovery Secret
         </p>
       </div>
 
-      <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300 flex items-start gap-2.5">
+      <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 flex items-start gap-2.5">
         <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
-        <span>
-          Recovery decrypts the master key envelope locally and resets your vault passphrase without data loss.
+        <span className="leading-relaxed">
+          Recovery decrypts the master key envelope locally in your browser and resets your vault passphrase without data loss.
         </span>
       </div>
 
       {error && (
-        <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+        <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 font-medium">
           {error}
         </div>
       )}
@@ -132,17 +132,17 @@ function RecoveryForm() {
           type="submit"
           variant="primary"
           size="lg"
-          className="w-full mt-4"
+          className="w-full mt-2"
           isLoading={isLoading}
         >
           Recover & Rotate Passphrase
         </Button>
       </form>
 
-      <div className="text-center text-xs text-slate-400 pt-2 border-t border-surface-border/60">
+      <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
         <Link
           href="/unlock"
-          className="text-slate-400 hover:text-slate-200 inline-flex items-center gap-1.5"
+          className="text-slate-400 hover:text-white inline-flex items-center gap-1.5 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Vault Unlock
         </Link>
@@ -153,7 +153,7 @@ function RecoveryForm() {
 
 export default function RecoverPage() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#080c14] cyber-grid-bg flex items-center justify-center p-4">
       <RecoveryForm />
     </div>
   );

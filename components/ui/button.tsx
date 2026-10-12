@@ -20,25 +20,25 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface disabled:opacity-50 disabled:cursor-not-allowed";
+      "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080c14] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-[0.98]";
 
     const variantStyles = {
       primary:
-        "bg-brand-500 hover:bg-brand-600 text-white shadow-sm focus:ring-brand-400",
+        "bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white shadow-md shadow-sky-500/20 hover:shadow-sky-500/30 focus-visible:ring-sky-400 border border-sky-400/30",
       secondary:
-        "bg-surface-raised hover:bg-slate-700 text-slate-200 border border-surface-border focus:ring-slate-500",
+        "bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-slate-600 shadow-sm focus-visible:ring-slate-400",
       outline:
-        "border border-brand-500/40 text-brand-400 hover:bg-brand-500/10 focus:ring-brand-500",
+        "border border-sky-500/40 text-sky-400 hover:bg-sky-500/10 hover:border-sky-400 focus-visible:ring-sky-400",
       danger:
-        "bg-red-600/90 hover:bg-red-600 text-white focus:ring-red-500 shadow-sm",
+        "bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-md shadow-rose-600/20 focus-visible:ring-rose-500 border border-rose-500/30",
       ghost:
-        "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 focus:ring-slate-400",
+        "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 focus-visible:ring-slate-400",
     };
 
     const sizeStyles = {
       sm: "px-3 py-1.5 text-xs gap-1.5",
-      md: "px-4 py-2 text-sm gap-2",
-      lg: "px-6 py-2.5 text-base gap-2.5",
+      md: "px-4 py-2 text-xs font-semibold gap-2",
+      lg: "px-5 py-2.5 text-sm font-semibold gap-2.5",
     };
 
     return (
@@ -50,7 +50,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading && (
           <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+            className="animate-spin -ml-0.5 mr-2 h-3.5 w-3.5 text-current shrink-0"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

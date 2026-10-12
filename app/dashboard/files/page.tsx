@@ -324,7 +324,7 @@ export default function FilesPage() {
                   {idx > 0 && <ChevronRight className="w-3.5 h-3.5 text-slate-600" />}
                   <button
                     onClick={() => navigateBreadcrumb(idx)}
-                    className={`hover:text-brand-400 transition-colors ${
+                    className={`hover:text-sky-400 transition-colors ${
                       idx === folderBreadcrumbs.length - 1 ? "text-slate-200 font-semibold" : ""
                     }`}
                   >
@@ -349,7 +349,7 @@ export default function FilesPage() {
               disabled={!isUnlocked}
               onClick={() => setIsCreateFolderOpen(true)}
             >
-              <FolderPlus className="w-4 h-4 mr-1.5 text-brand-400" /> New Folder
+              <FolderPlus className="w-4 h-4 mr-1.5 text-sky-400" /> New Folder
             </Button>
 
             <Button
@@ -364,15 +364,15 @@ export default function FilesPage() {
         </div>
 
         {errorMessage && (
-          <div className="p-3.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-400">
+          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-400 font-medium">
             {errorMessage}
           </div>
         )}
 
         {/* Upload Progress Bar if active */}
         {uploading && (
-          <Card className="p-4 bg-slate-900 border-brand-500/40 space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono text-brand-400">
+          <Card className="p-4 bg-slate-900 border-sky-500/40 space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono text-sky-400">
               <span>{uploadStatus}</span>
               <span>{uploadProgress}%</span>
             </div>
@@ -381,22 +381,22 @@ export default function FilesPage() {
         )}
 
         {/* Filter and View Controls Toolbar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface/40 p-3 rounded-xl border border-surface-border">
-          <div className="relative w-full sm:w-72">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+          <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="Search decrypted files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900/80 border border-surface-border rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+              className="w-full bg-slate-950/80 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
             />
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-1 bg-slate-900 border border-surface-border rounded-lg px-2 py-1 text-xs text-slate-400">
-              <ArrowUpDown className="w-3.5 h-3.5 mr-1" />
+            <div className="flex items-center gap-1 bg-slate-950/80 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-400 font-mono">
+              <ArrowUpDown className="w-3.5 h-3.5 mr-1 text-sky-400" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
@@ -415,16 +415,18 @@ export default function FilesPage() {
             </div>
 
             {/* View Toggle */}
-            <div className="flex items-center bg-slate-900 border border-surface-border rounded-lg p-0.5">
+            <div className="flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-1.5 rounded ${viewMode === "list" ? "bg-slate-800 text-brand-400" : "text-slate-500 hover:text-slate-300"}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-slate-800 text-sky-400" : "text-slate-500 hover:text-slate-300"}`}
+                title="List View"
               >
                 <List className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-1.5 rounded ${viewMode === "grid" ? "bg-slate-800 text-brand-400" : "text-slate-500 hover:text-slate-300"}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === "grid" ? "bg-slate-800 text-sky-400" : "text-slate-500 hover:text-slate-300"}`}
+                title="Grid View"
               >
                 <Grid className="w-4 h-4" />
               </button>
@@ -435,19 +437,19 @@ export default function FilesPage() {
         {/* Folders Section */}
         {folders.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <h2 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">
               Folders
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {folders.map((folder) => (
                 <div
                   key={folder.id}
-                  className="group bg-surface/70 hover:bg-slate-800/80 border border-surface-border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all shadow-sm"
+                  className="group bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800/80 hover:border-sky-500/30 rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all shadow-sm"
                   onClick={() => enterFolder(folder)}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Folder className="w-5 h-5 text-brand-400 shrink-0" />
-                    <span className="text-xs font-medium text-slate-200 truncate">
+                    <Folder className="w-4 h-4 text-sky-400 shrink-0" />
+                    <span className="text-xs font-semibold text-slate-200 truncate">
                       {folder.name}
                     </span>
                   </div>
@@ -470,19 +472,19 @@ export default function FilesPage() {
         {/* Files Content Section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <h2 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">
               Files ({filteredFiles.length})
             </h2>
           </div>
 
           {loading ? (
-            <div className="py-12 text-center text-xs text-slate-500 font-mono">
+            <div className="py-12 text-center text-xs text-slate-400 font-mono">
               Loading and decrypting metadata envelopes...
             </div>
           ) : filteredFiles.length === 0 ? (
-            <Card className="py-16 text-center space-y-3">
-              <FileIcon className="w-10 h-10 text-slate-600 mx-auto" />
-              <p className="text-sm text-slate-400">No encrypted files found in this folder.</p>
+            <Card className="py-16 text-center space-y-3 bg-slate-900/40 border-slate-800">
+              <FileIcon className="w-10 h-10 text-slate-700 mx-auto" />
+              <p className="text-xs text-slate-400">No encrypted files found in this folder.</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -494,10 +496,10 @@ export default function FilesPage() {
             </Card>
           ) : viewMode === "list" ? (
             /* LIST VIEW */
-            <Card className="overflow-hidden p-0">
+            <Card className="overflow-hidden p-0 bg-slate-900/60 border-slate-800">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-900/80 text-slate-400 border-b border-surface-border uppercase font-mono text-[11px]">
+                  <thead className="bg-slate-950/80 text-slate-400 border-b border-slate-800 uppercase font-mono text-[10px] tracking-wider">
                     <tr>
                       <th className="px-4 py-3">File Name</th>
                       <th className="px-4 py-3">Size</th>
@@ -506,11 +508,11 @@ export default function FilesPage() {
                       <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-surface-border/40">
+                  <tbody className="divide-y divide-slate-800/60">
                     {filteredFiles.map((file) => (
-                      <tr key={file.id} className="hover:bg-slate-900/40 transition-colors">
-                        <td className="px-4 py-3 font-medium text-slate-100 flex items-center gap-2.5">
-                          <FileIcon className="w-4 h-4 text-brand-400 shrink-0" />
+                      <tr key={file.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-slate-100 flex items-center gap-2.5">
+                          <FileIcon className="w-4 h-4 text-sky-400 shrink-0" />
                           <span className="truncate max-w-xs">{file.name}</span>
                         </td>
                         <td className="px-4 py-3 font-mono text-slate-400">
@@ -526,7 +528,7 @@ export default function FilesPage() {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => handleDownload(file)}
-                              className="p-1.5 text-slate-400 hover:text-brand-400 transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-sky-400 transition-colors"
                               title="Decrypt & Download"
                             >
                               <Download className="w-4 h-4" />
@@ -564,15 +566,15 @@ export default function FilesPage() {
             /* GRID VIEW */
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredFiles.map((file) => (
-                <Card key={file.id} className="p-4 space-y-3 hover:border-brand-500/40 transition-all flex flex-col justify-between">
+                <Card key={file.id} className="p-4 space-y-3 bg-slate-900/60 border-slate-800 hover:border-sky-500/40 transition-all flex flex-col justify-between">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="w-10 h-10 rounded-lg bg-slate-800 border border-surface-border flex items-center justify-center text-brand-400 shrink-0">
-                      <FileIcon className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-sky-400 shrink-0">
+                      <FileIcon className="w-4 h-4" />
                     </div>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleDownload(file)}
-                        className="p-1 text-slate-400 hover:text-brand-400"
+                        className="p-1 text-slate-400 hover:text-sky-400"
                         title="Download"
                       >
                         <Download className="w-4 h-4" />
@@ -588,19 +590,19 @@ export default function FilesPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <div className="text-sm font-semibold text-slate-100 truncate" title={file.name}>
+                    <div className="text-xs sm:text-sm font-semibold text-slate-100 truncate" title={file.name}>
                       {file.name}
                     </div>
-                    <div className="text-xs text-slate-400 font-mono">
+                    <div className="text-[11px] text-slate-400 font-mono">
                       {formatSize(file.size || file.ciphertextSize)}
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-surface-border/60 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-mono">
                     <span>{new Date(file.createdAt).toLocaleDateString()}</span>
                     <button
                       onClick={() => setActiveFileDetails(file)}
-                      className="text-brand-400 hover:underline flex items-center gap-1"
+                      className="text-sky-400 hover:underline flex items-center gap-1 font-semibold"
                     >
                       <Info className="w-3 h-3" /> Info
                     </button>
@@ -653,7 +655,7 @@ export default function FilesPage() {
               <select
                 value={selectedDestinationFolder}
                 onChange={(e) => setSelectedDestinationFolder(e.target.value)}
-                className="w-full bg-slate-900 border border-surface-border text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
+                className="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-sky-500"
               >
                 <option value="root">Root Vault</option>
                 {folders.map((fd) => (
@@ -682,7 +684,7 @@ export default function FilesPage() {
         >
           {activeFileDetails && (
             <div className="space-y-4 text-xs">
-              <div className="p-3 bg-slate-900 rounded-lg border border-surface-border font-mono space-y-2">
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 font-mono space-y-2 text-[11px]">
                 <div>
                   <span className="text-slate-500">File ID: </span>
                   <span className="text-slate-200">{activeFileDetails.id}</span>
@@ -695,25 +697,25 @@ export default function FilesPage() {
                 </div>
                 <div>
                   <span className="text-slate-500">Wrapping Nonce (Base64): </span>
-                  <span className="text-brand-300 break-all">
+                  <span className="text-sky-400 break-all">
                     {activeFileDetails.fileKeyWrappingNonce}
                   </span>
                 </div>
                 <div>
                   <span className="text-slate-500">File AES-GCM Nonce: </span>
-                  <span className="text-brand-300 break-all">
+                  <span className="text-sky-400 break-all">
                     {activeFileDetails.fileEncryptionNonce}
                   </span>
                 </div>
                 <div>
                   <span className="text-slate-500">Metadata Nonce: </span>
-                  <span className="text-brand-300 break-all">
+                  <span className="text-sky-400 break-all">
                     {activeFileDetails.metadataNonce}
                   </span>
                 </div>
               </div>
 
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 flex items-start gap-2">
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-start gap-2 leading-relaxed">
                 <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>
                   The server stores only ciphertext and the wrapped key envelope. The plaintext key exists only in browser memory during download.
