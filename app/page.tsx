@@ -307,7 +307,7 @@ export default function LandingPage() {
                   MATHEMATICALLY PRIVATE
                 </span>
               </div>
-              <ul className="space-y-3 text-xs text-slate-300 font-mono">
+              <ul className="space-y-3 text-xs text-slate-500 dark:text-slate-400 font-mono">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[rgb(100_215_113)] shrink-0 mt-0.5" />
                   <span>Files encrypted with fresh AES-256-GCM keys before upload</span>
