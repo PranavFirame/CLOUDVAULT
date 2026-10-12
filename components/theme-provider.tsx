@@ -16,38 +16,49 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("dark");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("cloudvault-theme") as Theme | null;
-    if (saved) {
-      setThemeState(saved);
-    }
-  }, []);
-
-  useEffect(() => {
+  const applyTheme = (currentTheme: Theme) => {
     const root = document.documentElement;
-    let actualTheme: "light" | "dark" = "dark";
+    let actual: "light" | "dark" = "dark";
 
-    if (theme === "system") {
-      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      actualTheme = systemDark ? "dark" : "light";
+    if (currentTheme === "system") {
+      actual = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     } else {
-      actualTheme = theme;
+      actual = currentTheme;
     }
 
-    setResolvedTheme(actualTheme);
+    setResolvedTheme(actual);
 
-    if (actualTheme === "dark") {
+    if (actual === "dark") {
       root.classList.add("dark");
       root.classList.remove("light");
     } else {
       root.classList.add("light");
       root.classList.remove("dark");
     }
-  }, [theme]);
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("cloudvault-theme") as Theme | null;
+    const initialTheme: Theme = saved || "dark";
+    setThemeState(initialTheme);
+    applyTheme(initialTheme);
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => {
+      const current = (localStorage.getItem("cloudvault-theme") as Theme | null) || "dark";
+      if (current === "system") {
+        applyTheme("system");
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem("cloudvault-theme", newTheme);
+    applyTheme(newTheme);
   };
 
   return (
