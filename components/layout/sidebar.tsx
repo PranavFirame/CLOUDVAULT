@@ -9,9 +9,6 @@ import {
   ShieldCheck,
   Settings,
   HardDrive,
-  Star,
-  Trash2,
-  Share2,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -79,17 +76,17 @@ export function Sidebar({
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
         />
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-60 border-r border-surface-border bg-surface flex flex-col justify-between p-3 shrink-0 transform transition-transform duration-200 ease-in-out md:translate-x-0 ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-60 border-r border-surface-border bg-surface/80 backdrop-blur-xl flex flex-col justify-between p-3 shrink-0 transform transition-transform duration-200 ease-in-out md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="space-y-4">
-          <div className="px-3 pt-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="px-3 pt-2 text-[10px] font-mono font-semibold text-slate-400 uppercase tracking-widest">
             Workspace
           </div>
 
@@ -103,9 +100,9 @@ export function Sidebar({
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold"
+                      ? "bg-brand-500/15 text-brand-500 font-semibold border border-brand-500/30 shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-surface-raised"
                   }`}
                 >
@@ -118,12 +115,12 @@ export function Sidebar({
         </div>
 
         {/* Storage Quota Card */}
-        <div className="p-3.5 rounded-xl bg-surface-raised border border-surface-border space-y-2.5">
+        <div className="p-3.5 rounded-2xl bg-surface-raised/80 backdrop-blur-md border border-surface-border space-y-2.5 shadow-sm">
           <div className="flex items-center justify-between text-xs font-medium text-foreground">
             <span className="flex items-center gap-1.5 text-xs font-semibold">
-              <HardDrive className="w-3.5 h-3.5 text-brand-500" /> Storage
+              <HardDrive className="w-3.5 h-3.5 text-brand-500" /> Vault Storage
             </span>
-            <span className="text-slate-500 font-mono text-[11px]">
+            <span className="text-brand-500 font-mono text-[11px] font-semibold">
               {storageData.percentageUsed}%
             </span>
           </div>

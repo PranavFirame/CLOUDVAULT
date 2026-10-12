@@ -3,44 +3,76 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --surface: #ffffff;
-  --surface-raised: #f1f5f9;
-  --surface-border: #e2e8f0;
+  --background: #faf7f2;
+  --foreground: #18181b;
+  --surface: rgba(255, 255, 255, 0.85);
+  --surface-raised: #f2ece1;
+  --surface-border: rgba(24, 24, 27, 0.08);
+  --accent-gold: #e5a93c;
+  --accent-green: #10b981;
 }
 
 .dark {
-  --background: #090d16;
-  --foreground: #f8fafc;
-  --surface: #0f172a;
-  --surface-raised: #1e293b;
-  --surface-border: #1e293b;
+  --background: #131316;
+  --foreground: #f4f4f5;
+  --surface: rgba(30, 30, 36, 0.75);
+  --surface-raised: #1e1e24;
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --accent-gold: #e5a93c;
+  --accent-green: #10b981;
 }
 
 body {
   color: var(--foreground);
   background-color: var(--background);
   font-feature-settings: "rlig" 1, "calt" 1;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
 }
 
-/* Subtle modern SaaS container & card utilities */
+/* Subtle background ambient mesh glow like pranavfirame.github.io/portfolio */
+.dark body {
+  background-image: 
+    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(229, 169, 60, 0.07), transparent 70%),
+    radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.04), transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Portfolio-style glassmorphic blurred panels and cards */
 .vault-card {
-  background-color: var(--surface);
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--surface-border);
-  border-radius: 0.875rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  transition: all 0.15s ease-in-out;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .vault-card {
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.25);
-  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .vault-card:hover {
-  border-color: rgba(99, 102, 241, 0.35);
+  border-color: rgba(229, 169, 60, 0.35);
+  box-shadow: 0 16px 40px -4px rgba(229, 169, 60, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Floating navigation pill style like portfolio */
+.nav-pill {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--surface-border);
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* Selection gold glow */
+::selection {
+  background-color: #e5a93c;
+  color: #131316;
 }
 
 /* Custom subtle scrollbars */
@@ -54,10 +86,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: rgba(161, 161, 170, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.6);
+  background: #e5a93c;
 }

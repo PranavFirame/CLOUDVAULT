@@ -20,15 +20,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:pointer-events-none select-none text-sm";
+      "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:pointer-events-none select-none text-sm";
 
     const variantStyles = {
       primary:
-        "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white shadow-sm border border-brand-600/30",
+        "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-[#131316] font-semibold shadow-md shadow-brand-500/20 border border-brand-400/40",
       secondary:
-        "bg-surface-raised hover:bg-slate-200 dark:hover:bg-slate-700/80 text-foreground border border-surface-border shadow-sm",
+        "bg-surface-raised/80 hover:bg-surface-raised text-foreground border border-surface-border shadow-sm backdrop-blur-md",
       outline:
-        "border border-surface-border text-foreground hover:bg-surface-raised",
+        "border border-surface-border text-foreground hover:bg-surface-raised backdrop-blur-md",
       danger:
         "bg-rose-600 hover:bg-rose-700 text-white shadow-sm border border-rose-700/30",
       ghost:
