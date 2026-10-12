@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   Shield,
-  Lock,
   Unlock,
   LogOut,
   Sun,
@@ -12,6 +11,7 @@ import {
   Menu,
   User,
   KeyRound,
+  Lock,
 } from "lucide-react";
 import { useVault } from "@/lib/crypto/vault-context";
 import { useTheme } from "@/components/theme-provider";
@@ -47,12 +47,12 @@ export function Navbar({
         )}
 
         <Link href="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-500 group-hover:border-brand-500/60 shadow-[0_0_12px_rgba(229,169,60,0.15)] transition-all">
+          <div className="w-8 h-8 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] flex items-center justify-center text-[rgb(240_158_79)] group-hover:border-[rgba(240,158,79,0.6)] shadow-[0_0_12px_rgba(240,158,79,0.15)] transition-all">
             <Shield className="w-4 h-4" />
           </div>
           <div>
             <span className="font-bold text-sm tracking-tight text-foreground flex items-center gap-1">
-              CLOUD<span className="text-brand-500">VAULT</span>
+              CLOUD<span className="text-[rgb(240_158_79)]">VAULT</span>
             </span>
           </div>
         </Link>
@@ -63,8 +63,8 @@ export function Navbar({
         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-raised/80 backdrop-blur-md border border-surface-border text-xs">
           {isUnlocked ? (
             <>
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.7)]" />
-              <span className="text-emerald-500 font-mono font-medium flex items-center gap-1 text-[11px]">
+              <div className="w-2 h-2 rounded-full bg-[rgb(100_215_113)] animate-pulse shadow-[0_0_8px_rgba(100,215,113,0.7)]" />
+              <span className="text-[rgb(100_215_113)] font-mono font-medium flex items-center gap-1 text-[11px]">
                 <Unlock className="w-3 h-3" /> UNLOCKED
               </span>
               <button
@@ -77,8 +77,8 @@ export function Navbar({
             </>
           ) : status === "UNINITIALIZED" ? (
             <>
-              <div className="w-2 h-2 rounded-full bg-brand-500" />
-              <span className="text-brand-500 font-mono font-medium flex items-center gap-1 text-[11px]">
+              <div className="w-2 h-2 rounded-full bg-[rgb(240_158_79)]" />
+              <span className="text-[rgb(240_158_79)] font-mono font-medium flex items-center gap-1 text-[11px]">
                 <KeyRound className="w-3 h-3" /> UNINITIALIZED
               </span>
             </>
@@ -90,7 +90,7 @@ export function Navbar({
               </span>
               <Link
                 href="/unlock"
-                className="ml-1 text-brand-500 hover:underline font-medium text-[10px]"
+                className="ml-1 text-[rgb(240_158_79)] hover:underline font-medium text-[10px]"
               >
                 Unlock
               </Link>
@@ -104,7 +104,7 @@ export function Navbar({
           className="p-1.5 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
           title="Toggle theme"
         >
-          {resolvedTheme === "dark" ? <Sun className="w-4 h-4 text-brand-500" /> : <Moon className="w-4 h-4" />}
+          {resolvedTheme === "dark" ? <Sun className="w-4 h-4 text-[rgb(240_158_79)]" /> : <Moon className="w-4 h-4" />}
         </button>
 
         {/* User Account Dropdown */}
@@ -113,7 +113,7 @@ export function Navbar({
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-2 p-1 pl-2 rounded-full hover:bg-surface-raised transition-colors border border-transparent hover:border-surface-border"
           >
-            <div className="w-7 h-7 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-500 flex items-center justify-center font-semibold text-xs uppercase shadow-sm">
+            <div className="w-7 h-7 rounded-full bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] text-[rgb(240_158_79)] flex items-center justify-center font-semibold text-xs uppercase shadow-sm">
               {userEmail ? userEmail.charAt(0) : "U"}
             </div>
             {userEmail && (
@@ -133,7 +133,7 @@ export function Navbar({
                 onClick={() => setDropdownOpen(false)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-surface-raised text-slate-700 dark:text-slate-300"
               >
-                <User className="w-3.5 h-3.5 text-brand-500" /> Account Settings
+                <User className="w-3.5 h-3.5 text-[rgb(240_158_79)]" /> Account Settings
               </Link>
               <button
                 onClick={() => {

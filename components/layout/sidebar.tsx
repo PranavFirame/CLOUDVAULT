@@ -102,7 +102,7 @@ export function Sidebar({
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-brand-500/15 text-brand-500 font-semibold border border-brand-500/30 shadow-sm"
+                      ? "bg-[rgba(240,158,79,0.15)] text-[rgb(240_158_79)] font-semibold border border-[rgba(240,158,79,0.3)] shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-surface-raised"
                   }`}
                 >
@@ -118,9 +118,9 @@ export function Sidebar({
         <div className="p-3.5 rounded-2xl bg-surface-raised/80 backdrop-blur-md border border-surface-border space-y-2.5 shadow-sm">
           <div className="flex items-center justify-between text-xs font-medium text-foreground">
             <span className="flex items-center gap-1.5 text-xs font-semibold">
-              <HardDrive className="w-3.5 h-3.5 text-brand-500" /> Vault Storage
+              <HardDrive className="w-3.5 h-3.5 text-[rgb(240_158_79)]" /> Vault Storage
             </span>
-            <span className="text-brand-500 font-mono text-[11px] font-semibold">
+            <span className="text-[rgb(240_158_79)] font-mono text-[11px] font-semibold">
               {storageData.percentageUsed}%
             </span>
           </div>

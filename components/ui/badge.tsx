@@ -10,10 +10,10 @@ export function Badge({
   className?: string;
 }) {
   const variantStyles = {
-    info: "bg-brand-500/15 text-brand-600 dark:text-brand-400 border-brand-500/30",
-    success: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-    warning: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-    danger: "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
+    info: "bg-[rgba(240,158,79,0.15)] text-[rgb(240_158_79)] border-[rgba(240,158,79,0.3)]",
+    success: "bg-[rgba(100,215,113,0.15)] text-[rgb(100_215_113)] border-[rgba(100,215,113,0.3)]",
+    warning: "bg-amber-500/15 text-amber-500 border-amber-500/30",
+    danger: "bg-rose-500/15 text-rose-500 border-rose-500/30",
     neutral: "bg-surface-raised text-slate-600 dark:text-slate-400 border-surface-border",
   };
 
@@ -40,7 +40,7 @@ export function Progress({
   return (
     <div className={`w-full bg-slate-200 dark:bg-zinc-800/80 rounded-full h-1.5 overflow-hidden backdrop-blur-sm ${className}`}>
       <div
-        className="bg-brand-500 h-full rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(229,169,60,0.5)]"
+        className="bg-[rgb(240_158_79)] h-full rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(240,158,79,0.5)]"
         style={{ width: `${percentage}%` }}
       />
     </div>

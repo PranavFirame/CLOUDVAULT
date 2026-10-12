@@ -53,17 +53,17 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-brand-500 selection:text-[#131316]">
+    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-[rgb(240_158_79)] selection:text-[#131316]">
       {/* Top Floating Navigation Pill */}
       <header className="sticky top-4 z-50 px-4 md:px-6 transition-all flex justify-center">
         <div className="nav-pill rounded-full max-w-4xl w-full px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-500 shadow-[0_0_12px_rgba(229,169,60,0.2)]">
+            <div className="w-8 h-8 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] flex items-center justify-center text-[rgb(240_158_79)] shadow-[0_0_12px_rgba(240,158,79,0.2)]">
               <Shield className="w-4 h-4" />
             </div>
             <div>
               <span className="font-bold text-base tracking-tight text-foreground">
-                CLOUD<span className="text-brand-500">VAULT</span>
+                CLOUD<span className="text-[rgb(240_158_79)]">VAULT</span>
               </span>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default function LandingPage() {
               className="p-2 rounded-full text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
               title="Toggle theme"
             >
-              {resolvedTheme === "dark" ? <Sun className="w-4 h-4 text-brand-500" /> : <Moon className="w-4 h-4" />}
+              {resolvedTheme === "dark" ? <Sun className="w-4 h-4 text-[rgb(240_158_79)]" /> : <Moon className="w-4 h-4" />}
             </button>
             <Link
               href="/login"
@@ -91,7 +91,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/register"
-              className="text-xs font-semibold bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-[#131316] px-4 py-1.5 rounded-full shadow-md shadow-brand-500/20 transition-all font-semibold"
+              className="text-xs font-semibold bg-[rgb(240_158_79)] hover:bg-[rgb(222_136_53)] active:bg-[rgb(186_104_38)] text-[#131316] px-4 py-1.5 rounded-full shadow-md shadow-[rgba(240,158,79,0.2)] transition-all"
             >
               Get Started Free
             </Link>
@@ -102,14 +102,14 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-6 text-center relative overflow-hidden">
         <div className="max-w-4xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-500/10 border border-brand-500/25 text-brand-500 text-xs font-medium backdrop-blur-md shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.25)] text-[rgb(240_158_79)] text-xs font-medium backdrop-blur-md shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-[rgb(100_215_113)] animate-pulse shadow-[0_0_8px_rgba(100,215,113,0.8)]" />
             Zero-Knowledge Client-Side Encryption • Local-First
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold text-foreground tracking-tight leading-[1.15]">
             Your files. Your privacy. <br />
-            <span className="text-brand-500 drop-shadow-[0_0_24px_rgba(229,169,60,0.2)]">Your vault.</span>
+            <span className="text-[rgb(240_158_79)] drop-shadow-[0_0_24px_rgba(240,158,79,0.25)]">Your vault.</span>
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -120,7 +120,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-brand-500 hover:bg-brand-600 text-[#131316] font-semibold text-sm shadow-lg shadow-brand-500/25 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-[rgb(240_158_79)] hover:bg-[rgb(222_136_53)] text-[#131316] font-semibold text-sm shadow-lg shadow-[rgba(240,158,79,0.25)] transition-all"
             >
               Get Started Free <ArrowRight className="w-4 h-4" />
             </Link>
@@ -140,13 +140,13 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-rose-500/80" />
                   <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-[rgb(100_215_113)]" />
                   <span className="ml-2 text-xs font-mono text-slate-400">
                     cloudvault://vault/files
                   </span>
                 </div>
-                <div className="text-xs font-mono text-emerald-500 flex items-center gap-1.5 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                <div className="text-xs font-mono text-[rgb(100_215_113)] flex items-center gap-1.5 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-[rgb(100_215_113)] animate-pulse shadow-[0_0_8px_rgba(100,215,113,0.8)]" />
                   AES-256-GCM ACTIVE
                 </div>
               </div>
@@ -156,7 +156,7 @@ export default function LandingPage() {
                 {/* Left Mini Sidebar */}
                 <div className="hidden md:block space-y-1.5 text-xs text-slate-400">
                   <div className="px-3 py-2 font-semibold text-foreground bg-surface-raised rounded-xl flex items-center gap-2 border border-surface-border">
-                    <FolderLock className="w-4 h-4 text-brand-500" /> My Files
+                    <FolderLock className="w-4 h-4 text-[rgb(240_158_79)]" /> My Files
                   </div>
                   <div className="px-3 py-2 hover:bg-surface-raised rounded-xl flex items-center gap-2 transition-colors">
                     <Layers className="w-4 h-4" /> Confidential Documents
@@ -170,7 +170,7 @@ export default function LandingPage() {
                 <div className="md:col-span-3 space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-surface-border">
                     <div className="text-sm font-semibold text-foreground">Encrypted Objects</div>
-                    <div className="text-xs text-brand-500 font-mono font-medium">
+                    <div className="text-xs text-[rgb(240_158_79)] font-mono font-medium">
                       100% Client Encrypted
                     </div>
                   </div>
@@ -178,7 +178,7 @@ export default function LandingPage() {
                   <div className="space-y-2.5 text-xs">
                     <div className="p-3 bg-surface-raised/80 rounded-xl flex items-center justify-between border border-surface-border backdrop-blur-md">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500 font-bold">
+                        <div className="w-8 h-8 rounded-lg bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.2)] flex items-center justify-center text-[rgb(240_158_79)] font-bold">
                           PDF
                         </div>
                         <div>
@@ -186,14 +186,14 @@ export default function LandingPage() {
                           <div className="text-slate-400 text-[11px]">4.2 MB • Ciphertext ID: 8f9b...14a</div>
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-semibold">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-[rgba(100,215,113,0.15)] text-[rgb(100_215_113)] border border-[rgba(100,215,113,0.3)] font-semibold">
                         VERIFIED
                       </span>
                     </div>
 
                     <div className="p-3 bg-surface-raised/80 rounded-xl flex items-center justify-between border border-surface-border backdrop-blur-md">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
+                        <div className="w-8 h-8 rounded-lg bg-[rgba(100,215,113,0.1)] border border-[rgba(100,215,113,0.2)] flex items-center justify-center text-[rgb(100_215_113)] font-bold">
                           KEY
                         </div>
                         <div>
@@ -201,7 +201,7 @@ export default function LandingPage() {
                           <div className="text-slate-400 text-[11px]">890 KB • Ciphertext ID: 3e1a...99b</div>
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-semibold">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-[rgba(100,215,113,0.15)] text-[rgb(100_215_113)] border border-[rgba(100,215,113,0.3)] font-semibold">
                         VERIFIED
                       </span>
                     </div>
@@ -227,7 +227,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="vault-card p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/25 flex items-center justify-center text-brand-500">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.25)] flex items-center justify-center text-[rgb(240_158_79)]">
                 <FolderLock className="w-5 h-5" />
               </div>
               <h3 className="font-semibold text-foreground text-base">Organized File & Folder Hierarchy</h3>
@@ -237,7 +237,7 @@ export default function LandingPage() {
             </div>
 
             <div className="vault-card p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-500">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(100,215,113,0.1)] border border-[rgba(100,215,113,0.25)] flex items-center justify-center text-[rgb(100_215_113)]">
                 <Search className="w-5 h-5" />
               </div>
               <h3 className="font-semibold text-foreground text-base">Instant Client-Side Search</h3>
@@ -247,7 +247,7 @@ export default function LandingPage() {
             </div>
 
             <div className="vault-card p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-brand-500">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.25)] flex items-center justify-center text-[rgb(240_158_79)]">
                 <FileCheck className="w-5 h-5" />
               </div>
               <h3 className="font-semibold text-foreground text-base">In-Browser File Previews</h3>
@@ -297,26 +297,26 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="vault-card p-6 space-y-4 border-brand-500/35 shadow-glow">
+            <div className="vault-card p-6 space-y-4 border-[rgba(240,158,79,0.35)] shadow-glow">
               <div className="flex items-center justify-between pb-3 border-b border-surface-border">
                 <span className="font-bold text-foreground flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-brand-500" /> CloudVault Zero-Knowledge
+                  <Shield className="w-4 h-4 text-[rgb(240_158_79)]" /> CloudVault Zero-Knowledge
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-500 font-semibold border border-brand-500/30">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[rgba(240,158,79,0.15)] text-[rgb(240_158_79)] font-semibold border border-[rgba(240,158,79,0.3)]">
                   MATHEMATICALLY PRIVATE
                 </span>
               </div>
               <ul className="space-y-3 text-xs text-slate-300 font-mono">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-[rgb(100_215_113)] shrink-0 mt-0.5" />
                   <span>Files encrypted with fresh AES-256-GCM keys before upload</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-[rgb(100_215_113)] shrink-0 mt-0.5" />
                   <span>Filenames, sizes, and folder trees stored strictly as ciphertext</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-[rgb(100_215_113)] shrink-0 mt-0.5" />
                   <span>Server possesses zero keys; decryption mathematically impossible for server</span>
                 </li>
               </ul>
@@ -339,7 +339,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="vault-card p-6 space-y-3">
-              <div className="text-2xl font-bold text-brand-500 font-mono">01</div>
+              <div className="text-2xl font-bold text-[rgb(240_158_79)] font-mono">01</div>
               <h3 className="font-semibold text-foreground text-sm">Unlock Your Vault</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 Enter your Vault Passphrase. The browser derives your Key-Encryption Key using Argon2id and unseals your Master Key in transient RAM.
@@ -347,7 +347,7 @@ export default function LandingPage() {
             </div>
 
             <div className="vault-card p-6 space-y-3">
-              <div className="text-2xl font-bold text-brand-500 font-mono">02</div>
+              <div className="text-2xl font-bold text-[rgb(240_158_79)] font-mono">02</div>
               <h3 className="font-semibold text-foreground text-sm">Browser Encrypts Bytes</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 When you drag or select a file, a unique 256-bit AES-GCM key is generated. The file is encrypted and wrapped with HKDF before leaving your device.
@@ -355,7 +355,7 @@ export default function LandingPage() {
             </div>
 
             <div className="vault-card p-6 space-y-3">
-              <div className="text-2xl font-bold text-brand-500 font-mono">03</div>
+              <div className="text-2xl font-bold text-[rgb(240_158_79)] font-mono">03</div>
               <h3 className="font-semibold text-foreground text-sm">Opaque Local Storage</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 The local application stores only the ciphertext object in `./data/objects/` under an opaque ID. Zero plaintext is ever written to disk.
@@ -386,7 +386,7 @@ export default function LandingPage() {
                 >
                   <span>{faq.q}</span>
                   {openFaq === idx ? (
-                    <ChevronUp className="w-4 h-4 text-brand-500" />
+                    <ChevronUp className="w-4 h-4 text-[rgb(240_158_79)]" />
                   ) : (
                     <ChevronDown className="w-4 h-4 text-slate-400" />
                   )}
@@ -406,7 +406,7 @@ export default function LandingPage() {
       <footer className="mt-auto border-t border-surface-border py-10 px-6 bg-surface-raised/40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-brand-500" />
+            <Shield className="w-4 h-4 text-[rgb(240_158_79)]" />
             <span className="font-semibold text-foreground">CloudVault</span>
             <span>— Premium Zero-Knowledge Encrypted Cloud Storage</span>
           </div>
