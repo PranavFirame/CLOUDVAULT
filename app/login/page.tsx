@@ -52,12 +52,12 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex flex-col justify-between p-4 selection:bg-brand-500 selection:text-white">
       {/* Top Header */}
       <div className="max-w-7xl w-full mx-auto flex items-center justify-between p-2">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] flex items-center justify-center text-[rgb(240_158_79)] shadow-[0_0_12px_rgba(240,158,79,0.2)]">
             <Shield className="w-4 h-4" />
           </div>
           <span className="font-bold text-base tracking-tight text-foreground">
-            CLOUD<span className="text-brand-500">VAULT</span>
+            CLOUD<span className="text-[rgb(240_158_79)]">VAULT</span>
           </span>
         </Link>
         <button
@@ -72,9 +72,9 @@ export default function LoginPage() {
       {/* Main Card */}
       <div className="flex items-center justify-center py-8">
         <Card className="max-w-md w-full p-8 space-y-6 shadow-xl">
-          <div className="text-center space-y-1.5">
-            <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-500 mx-auto flex items-center justify-center">
-              <Shield className="w-5 h-5" />
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] text-[rgb(240_158_79)] mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(240,158,79,0.2)]">
+              <Shield className="w-6 h-6" />
             </div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Sign In to CloudVault</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">

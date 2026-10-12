@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatusText, setUploadStatusText] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -127,62 +128,65 @@ export default function DashboardPage() {
 
     setErrorMessage(null);
     setUploading(true);
-    setUploadProgress(15);
-    setUploadStatusText("Encrypting file in browser (AES-256-GCM)...");
 
-    try {
-      const file = files[0];
-      const encryptedData = await prepareEncryptedUpload(file);
-      setUploadProgress(45);
-      setUploadStatusText("Authorizing upload & reserving opaque object ID...");
+    const filesArray = Array.from(files);
+    for (let i = 0; i < filesArray.length; i++) {
+      const file = filesArray[i];
+      setUploadStatusText(`Encrypting ${file.name} (${i + 1}/${filesArray.length})...`);
+      setUploadProgress(Math.round(((i * 2 + 1) / (filesArray.length * 2)) * 100));
 
-      const initRes = await fetch("/api/files/initiate-upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileId: encryptedData.fileId,
-          declaredCiphertextSize: encryptedData.ciphertextSize,
-          encryptedFileKey: encryptedData.encryptedFileKey,
-          fileKeyWrappingNonce: encryptedData.fileKeyWrappingNonce,
-          fileEncryptionNonce: encryptedData.fileEncryptionNonce,
-          encryptedMetadata: encryptedData.encryptedMetadata,
-          metadataNonce: encryptedData.metadataNonce,
-          folderId: null,
-        }),
-      });
+      try {
+        const encryptedData = await prepareEncryptedUpload(file);
+        setUploadStatusText(`Reserving opaque ID for ${file.name}...`);
 
-      if (!initRes.ok) {
-        const err = await initRes.json();
-        throw new Error(err.error || "Failed to initiate upload");
+        const initRes = await fetch("/api/files/initiate-upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileId: encryptedData.fileId,
+            declaredCiphertextSize: encryptedData.ciphertextSize,
+            encryptedFileKey: encryptedData.encryptedFileKey,
+            fileKeyWrappingNonce: encryptedData.fileKeyWrappingNonce,
+            fileEncryptionNonce: encryptedData.fileEncryptionNonce,
+            encryptedMetadata: encryptedData.encryptedMetadata,
+            metadataNonce: encryptedData.metadataNonce,
+            folderId: null,
+          }),
+        });
+
+        if (!initRes.ok) {
+          const err = await initRes.json();
+          throw new Error(err.error || `Failed to initiate upload for ${file.name}`);
+        }
+
+        const { fileId } = await initRes.json();
+        setUploadStatusText(`Saving ciphertext for ${file.name}...`);
+
+        const uploadRes = await fetch(`/api/files/upload/${fileId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: new Blob([encryptedData.ciphertext as any]),
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error(`Failed to store encrypted ciphertext for ${file.name}`);
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Upload failed";
+        setErrorMessage(msg);
+        break;
       }
-
-      const { fileId } = await initRes.json();
-      setUploadProgress(75);
-      setUploadStatusText("Saving ciphertext to local encrypted storage...");
-
-      const uploadRes = await fetch(`/api/files/upload/${fileId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/octet-stream" },
-        body: new Blob([encryptedData.ciphertext as any]),
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error("Failed to store encrypted ciphertext");
-      }
-
-      setUploadProgress(100);
-      setUploadStatusText("Upload complete!");
-      await fetchDashboardData();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload failed";
-      setErrorMessage(msg);
-    } finally {
-      setTimeout(() => {
-        setUploading(false);
-        setUploadProgress(0);
-        setUploadStatusText("");
-      }, 1000);
     }
+
+    setUploadProgress(100);
+    setUploadStatusText("Upload complete!");
+    await fetchDashboardData();
+
+    setTimeout(() => {
+      setUploading(false);
+      setUploadProgress(0);
+      setUploadStatusText("");
+    }, 1000);
   };
 
   const handleDownload = async (file: DecryptedFileInfo) => {
@@ -343,22 +347,60 @@ export default function DashboardPage() {
       </div>
 
       {/* Prominent Upload Zone */}
-      <div className="vault-card p-6 md:p-8 border-dashed border-2 border-surface-border hover:border-brand-500/50 transition-colors text-center bg-surface">
+      <div
+        className={`vault-card p-6 md:p-8 border-dashed border-2 transition-all text-center bg-surface relative ${
+          isDragOver
+            ? "border-[rgb(240_158_79)] bg-[rgba(240,158,79,0.06)] shadow-[0_0_24px_rgba(240,158,79,0.2)]"
+            : "border-surface-border hover:border-brand-500/50"
+        }`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!isDragOver) setIsDragOver(true);
+        }}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsDragOver(false);
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(false);
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileUpload(e.dataTransfer.files);
+          }
+        }}
+      >
         <input
           type="file"
+          multiple
           ref={fileInputRef}
           className="hidden"
           onChange={(e) => handleFileUpload(e.target.files)}
         />
 
-        <div className="max-w-md mx-auto space-y-3">
-          <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-500 mx-auto flex items-center justify-center">
+        <div className="max-w-md mx-auto space-y-3 pointer-events-none">
+          <div
+            className={`w-12 h-12 rounded-xl border mx-auto flex items-center justify-center transition-all ${
+              isDragOver
+                ? "bg-[rgba(240,158,79,0.2)] border-[rgb(240_158_79)] text-[rgb(240_158_79)] scale-110 shadow-[0_0_16px_rgba(240,158,79,0.4)]"
+                : "bg-[rgba(240,158,79,0.1)] border-[rgba(240,158,79,0.3)] text-[rgb(240_158_79)] shadow-[0_0_12px_rgba(240,158,79,0.15)]"
+            }`}
+          >
             <UploadCloud className="w-6 h-6" />
           </div>
 
           <div className="space-y-1">
             <h3 className="text-sm font-semibold text-foreground">
-              Drag and drop files here, or browse
+              {isDragOver ? "Drop files to encrypt & upload" : "Drag and drop files here, or browse"}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Files are encrypted with AES-256-GCM before saving to disk
@@ -373,7 +415,7 @@ export default function DashboardPage() {
               </p>
             </div>
           ) : (
-            <div className="flex justify-center gap-2 pt-2">
+            <div className="flex justify-center gap-2 pt-2 pointer-events-auto">
               <Button
                 variant="primary"
                 size="sm"

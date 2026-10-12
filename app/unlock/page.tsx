@@ -57,9 +57,9 @@ export default function UnlockPage() {
       {/* Main Card */}
       <div className="flex items-center justify-center py-8">
         <Card className="max-w-md w-full p-8 space-y-6 shadow-xl">
-          <div className="text-center space-y-1.5">
-            <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-500 mx-auto flex items-center justify-center">
-              <Lock className="w-5 h-5" />
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] text-[rgb(240_158_79)] mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(240,158,79,0.2)]">
+              <Lock className="w-6 h-6" />
             </div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Unlock Your Vault</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">

@@ -71,6 +71,7 @@ export default function FilesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Modals state
@@ -427,7 +428,51 @@ export default function FilesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
+    <div
+      className="max-w-6xl mx-auto space-y-5 relative min-h-[calc(100vh-8rem)]"
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isDragOver) setIsDragOver(true);
+      }}
+      onDragEnter={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setIsDragOver(false);
+        }
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFilesUpload(e.dataTransfer.files);
+        }
+      }}
+    >
+      {/* Full-view Drag & Drop Overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-50 rounded-2xl bg-background/85 backdrop-blur-md border-2 border-dashed border-[rgb(240_158_79)] flex flex-col items-center justify-center pointer-events-none p-6 text-center animate-in fade-in-50 duration-200 shadow-[0_0_32px_rgba(240,158,79,0.25)]">
+          <div className="w-16 h-16 rounded-2xl bg-[rgba(240,158,79,0.15)] border border-[rgb(240_158_79)] text-[rgb(240_158_79)] flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(240,158,79,0.3)] animate-bounce">
+            <Upload className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">
+            Drop files to encrypt & store in this folder
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-mono max-w-sm">
+            {isUnlocked
+              ? "AES-256-GCM browser encryption will run immediately for each file"
+              : "Vault locked — unlock vault before dropping files to encrypt"}
+          </p>
+        </div>
+      )}
+
       {/* Header with Breadcrumbs & Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
