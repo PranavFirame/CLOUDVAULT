@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   History,
   FileKey,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardTitle, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -124,11 +125,11 @@ export default function SecurityCenterPage() {
       </div>
 
       {/* Master Key Lifecycle Status Card */}
-      <Card className="p-5">
+      <Card className="p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                 isUnlocked
                   ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-500"
                   : "bg-rose-500/10 border border-rose-500/20 text-rose-500"
@@ -136,16 +137,16 @@ export default function SecurityCenterPage() {
             >
               {isUnlocked ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-semibold text-foreground">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sm sm:text-base font-semibold text-foreground">
                   Master Key: {isUnlocked ? "Unlocked in Memory" : "Locked"}
                 </h2>
                 <Badge variant={isUnlocked ? "success" : "danger"}>
                   {isUnlocked ? "ACTIVE" : "PROTECTED"}
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 break-words">
                 {isUnlocked
                   ? "Your 256-bit Master Key is currently held in transient browser RAM."
                   : "No decryption key is present in memory. Filenames and content remain encrypted."}
@@ -153,14 +154,14 @@ export default function SecurityCenterPage() {
             </div>
           </div>
 
-          <div>
+          <div className="shrink-0 w-full sm:w-auto">
             {isUnlocked ? (
-              <Button variant="danger" size="sm" onClick={lockVault}>
+              <Button variant="danger" size="sm" onClick={lockVault} className="w-full sm:w-auto">
                 <Lock className="w-3.5 h-3.5 mr-1.5" /> Lock Vault Now
               </Button>
             ) : (
-              <Link href="/unlock">
-                <Button variant="primary" size="sm">
+              <Link href="/unlock" className="block sm:inline-block w-full sm:w-auto">
+                <Button variant="primary" size="sm" className="w-full sm:w-auto">
                   <Unlock className="w-3.5 h-3.5 mr-1.5" /> Unlock Vault
                 </Button>
               </Link>
@@ -281,16 +282,16 @@ export default function SecurityCenterPage() {
           {sessions.map((sess) => (
             <div
               key={sess.id}
-              className="py-2.5 flex items-center justify-between gap-4 font-mono"
+              className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 font-mono"
             >
-              <div className="flex items-center gap-2.5">
-                <Laptop className="w-4 h-4 text-slate-400 shrink-0" />
-                <div>
-                  <div className="flex items-center gap-2 text-foreground font-medium">
-                    <span>Session ID: {sess.id.slice(0, 12)}...</span>
+              <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                <Laptop className="w-4 h-4 text-slate-400 shrink-0 mt-0.5 sm:mt-0" />
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 text-foreground font-medium">
+                    <span className="truncate">Session: {sess.id.slice(0, 12)}...</span>
                     {sess.isCurrent && <Badge variant="info">CURRENT</Badge>}
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
+                  <div className="text-[11px] text-slate-500 mt-0.5 break-words">
                     Created: {new Date(sess.createdAt).toLocaleString()} • Expires:{" "}
                     {new Date(sess.expiresAt).toLocaleDateString()}
                   </div>
@@ -302,9 +303,9 @@ export default function SecurityCenterPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRevokeSession(sess.id)}
-                  className="text-slate-500 hover:text-rose-600"
+                  className="self-end sm:self-auto text-slate-500 hover:text-rose-600 text-xs px-2 py-1"
                 >
-                  Revoke
+                  Revoke Session
                 </Button>
               )}
             </div>
@@ -313,8 +314,8 @@ export default function SecurityCenterPage() {
       </Card>
 
       {/* Security Audit Events */}
-      <Card className="p-5 space-y-3">
-        <CardHeader className="mb-0">
+      <Card className="p-4 sm:p-5 space-y-3">
+        <CardHeader className="mb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <CardTitle className="flex items-center gap-1.5">
               <History className="w-4 h-4 text-brand-500" /> Safe Audit Trail
@@ -323,6 +324,14 @@ export default function SecurityCenterPage() {
               Nonsensitive operational security logs (never contains plaintext keys)
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchSecurityData}
+            className="self-start sm:self-auto text-xs gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-brand-500" /> Refresh Audit Trail
+          </Button>
         </CardHeader>
 
         {auditEvents.length === 0 ? (
@@ -330,12 +339,12 @@ export default function SecurityCenterPage() {
         ) : (
           <div className="divide-y divide-surface-border text-xs font-mono">
             {auditEvents.slice(0, 8).map((evt) => (
-              <div key={evt.id} className="py-2 flex items-center justify-between gap-4">
+              <div key={evt.id} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
-                  <span className="text-foreground font-medium">{evt.eventType}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
+                  <span className="text-foreground font-medium break-all">{evt.eventType}</span>
                 </div>
-                <div className="text-[11px] text-slate-500">
+                <div className="text-[11px] text-slate-500 pl-3.5 sm:pl-0">
                   {new Date(evt.createdAt).toLocaleString()}
                 </div>
               </div>

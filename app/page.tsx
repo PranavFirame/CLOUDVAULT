@@ -55,14 +55,14 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-[rgb(240_158_79)] selection:text-[#131316]">
       {/* Top Floating Navigation Pill */}
-      <header className="sticky top-4 z-50 px-4 md:px-6 transition-all flex justify-center">
-        <div className="nav-pill rounded-full max-w-4xl w-full px-5 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] flex items-center justify-center text-[rgb(240_158_79)] shadow-[0_0_12px_rgba(240,158,79,0.2)]">
-              <Shield className="w-4 h-4" />
+      <header className="sticky top-3 sm:top-4 z-50 px-2 sm:px-4 md:px-6 transition-all flex justify-center">
+        <div className="nav-pill rounded-full max-w-4xl w-full px-3 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] flex items-center justify-center text-[rgb(240_158_79)] shadow-[0_0_12px_rgba(240,158,79,0.2)] shrink-0">
+              <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <div>
-              <span className="font-bold text-base tracking-tight text-foreground">
+              <span className="font-bold text-sm sm:text-base tracking-tight text-foreground">
                 CLOUD<span className="text-[rgb(240_158_79)]">VAULT</span>
               </span>
             </div>
@@ -75,25 +75,26 @@ export default function LandingPage() {
             <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <button
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-full text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
+              className="p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors shrink-0"
               title="Toggle theme"
             >
               {resolvedTheme === "dark" ? <Sun className="w-4 h-4 text-[rgb(240_158_79)]" /> : <Moon className="w-4 h-4" />}
             </button>
             <Link
               href="/login"
-              className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-surface-raised"
+              className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-foreground transition-colors px-2.5 sm:px-3 py-1.5 rounded-full hover:bg-surface-raised"
             >
               Sign In
             </Link>
             <Link
               href="/register"
-              className="text-xs font-semibold bg-[rgb(240_158_79)] hover:bg-[rgb(222_136_53)] active:bg-[rgb(186_104_38)] text-[#131316] px-4 py-1.5 rounded-full shadow-md shadow-[rgba(240,158,79,0.2)] transition-all"
+              className="text-xs font-semibold bg-[rgb(240_158_79)] hover:bg-[rgb(222_136_53)] active:bg-[rgb(186_104_38)] text-[#131316] px-3 sm:px-4 py-1.5 rounded-full shadow-md shadow-[rgba(240,158,79,0.2)] transition-all whitespace-nowrap"
             >
-              Get Started Free
+              <span className="inline sm:hidden">Register</span>
+              <span className="hidden sm:inline">Get Started Free</span>
             </Link>
           </div>
         </div>

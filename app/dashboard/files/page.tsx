@@ -474,19 +474,19 @@ export default function FilesPage() {
       )}
 
       {/* Header with Breadcrumbs & Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
             My Files
           </h1>
           {/* Breadcrumb Trail */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mt-0.5">
             {folderBreadcrumbs.map((bc, idx) => (
               <React.Fragment key={bc.id || "root"}>
-                {idx > 0 && <ChevronRight className="w-3 h-3 text-slate-400" />}
+                {idx > 0 && <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />}
                 <button
                   onClick={() => navigateBreadcrumb(idx)}
-                  className={`hover:text-foreground transition-colors ${
+                  className={`hover:text-foreground transition-colors truncate max-w-[150px] ${
                     idx === folderBreadcrumbs.length - 1 ? "font-semibold text-foreground" : ""
                   }`}
                 >
@@ -497,7 +497,7 @@ export default function FilesPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="file"
             multiple
@@ -510,6 +510,7 @@ export default function FilesPage() {
             size="sm"
             disabled={!isUnlocked}
             onClick={() => setIsCreateFolderOpen(true)}
+            className="text-xs"
           >
             <FolderPlus className="w-3.5 h-3.5 mr-1 text-brand-500" /> New Folder
           </Button>
@@ -519,6 +520,7 @@ export default function FilesPage() {
             size="sm"
             disabled={!isUnlocked}
             onClick={() => fileInputRef.current?.click()}
+            className="text-xs"
           >
             <Upload className="w-3.5 h-3.5 mr-1" /> Upload Files
           </Button>
@@ -543,7 +545,7 @@ export default function FilesPage() {
       )}
 
       {/* Filter and View Controls Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface p-2.5 rounded-xl border border-surface-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-2.5 rounded-xl border border-surface-border">
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
@@ -555,7 +557,7 @@ export default function FilesPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
+        <div className="flex items-center justify-between sm:justify-end gap-2">
           {/* Sort Dropdown */}
           <div className="flex items-center gap-1 bg-surface-raised border border-surface-border rounded-lg px-2 py-1 text-xs text-slate-500">
             <ArrowUpDown className="w-3 h-3 mr-0.5" />
@@ -663,27 +665,27 @@ export default function FilesPage() {
               <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
                 <thead className="bg-surface-raised text-slate-500 border-b border-surface-border text-[11px] font-medium">
                   <tr>
-                    <th className="px-4 py-2.5">Name</th>
-                    <th className="px-4 py-2.5">Size</th>
-                    <th className="px-4 py-2.5">Type</th>
-                    <th className="px-4 py-2.5">Created</th>
-                    <th className="px-4 py-2.5 text-right">Actions</th>
+                    <th className="px-3 sm:px-4 py-2.5">Name</th>
+                    <th className="px-3 sm:px-4 py-2.5">Size</th>
+                    <th className="hidden md:table-cell px-4 py-2.5">Type</th>
+                    <th className="hidden sm:table-cell px-4 py-2.5">Created</th>
+                    <th className="px-3 sm:px-4 py-2.5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-border">
                   {filteredFiles.map((file) => (
                     <tr key={file.id} className="hover:bg-surface-raised transition-colors group">
-                      <td className="px-4 py-2.5 font-medium text-foreground flex items-center gap-2.5">
+                      <td className="px-3 sm:px-4 py-2.5 font-medium text-foreground flex items-center gap-2.5">
                         {getFileTypeIcon(file.name, file.type)}
-                        <span className="truncate max-w-xs">{file.name}</span>
+                        <span className="truncate max-w-[140px] sm:max-w-xs">{file.name}</span>
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-slate-500">
+                      <td className="px-3 sm:px-4 py-2.5 font-mono text-slate-500 text-[11px] sm:text-xs">
                         {formatSize(file.size || file.ciphertextSize)}
                       </td>
-                      <td className="px-4 py-2.5 text-slate-500 font-mono text-[11px] truncate max-w-[120px]">
+                      <td className="hidden md:table-cell px-4 py-2.5 text-slate-500 font-mono text-[11px] truncate max-w-[120px]">
                         {file.type}
                       </td>
-                      <td className="px-4 py-2.5 text-slate-500 text-[11px]">
+                      <td className="hidden sm:table-cell px-4 py-2.5 text-slate-500 text-[11px]">
                         {new Date(file.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-2.5 text-right">

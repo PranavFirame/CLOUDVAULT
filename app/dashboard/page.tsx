@@ -233,7 +233,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Welcome Greeting Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
             Welcome back, {displayName}
@@ -243,15 +243,15 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           {!isUnlocked ? (
             <Link href="/unlock">
-              <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-600 dark:text-amber-400">
+              <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-600 dark:text-amber-400 text-xs">
                 <Lock className="w-3.5 h-3.5 mr-1.5" /> Unlock Vault Keys
               </Button>
             </Link>
           ) : (
-            <Badge variant="success" className="px-2.5 py-1">
+            <Badge variant="success" className="px-2.5 py-1 text-xs">
               <Unlock className="w-3.5 h-3.5 mr-1.5" /> Vault Active
             </Badge>
           )}
@@ -261,6 +261,7 @@ export default function DashboardPage() {
             size="sm"
             disabled={!isUnlocked}
             onClick={() => fileInputRef.current?.click()}
+            className="text-xs"
           >
             <Plus className="w-4 h-4 mr-1" /> Upload File
           </Button>
