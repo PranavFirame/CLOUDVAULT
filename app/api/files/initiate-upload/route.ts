@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
   const opaqueObjectId = `obj_${crypto.randomBytes(16).toString("hex")}`;
 
   const createdFile = await db.createFile({
+    id: fileId,
     ownerId: sessionUser.user.id,
     opaqueObjectId,
     encryptedFileKey,

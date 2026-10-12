@@ -426,6 +426,7 @@ export const db = {
   },
 
   async createFile(data: {
+    id?: string;
     ownerId: string;
     opaqueObjectId: string;
     encryptedFileKey: string;
@@ -437,9 +438,11 @@ export const db = {
     folderId?: string | null;
   }) {
     const sizeBigInt = BigInt(data.ciphertextSizeBytes);
+    const fileId = data.id || crypto.randomUUID();
     if (await isPgAvailable()) {
       return await prisma.file.create({
         data: {
+          id: fileId,
           ownerId: data.ownerId,
           opaqueObjectId: data.opaqueObjectId,
           encryptedFileKey: data.encryptedFileKey,
@@ -455,7 +458,7 @@ export const db = {
     }
     const store = getLocalStore();
     const newFile = {
-      id: crypto.randomUUID(),
+      id: fileId,
       ownerId: data.ownerId,
       opaqueObjectId: data.opaqueObjectId,
       encryptedFileKey: data.encryptedFileKey,
