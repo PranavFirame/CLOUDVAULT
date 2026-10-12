@@ -45,16 +45,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <VaultProvider>
-      <div className="min-h-screen bg-background text-slate-100 flex flex-col font-sans">
-        <Navbar userEmail={user?.email} />
-        <div className="flex-1 flex overflow-hidden">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-gradient-to-b from-background to-surface/40">
-            {children}
-          </main>
-        </div>
+    <div className="min-h-screen bg-background text-slate-100 flex flex-col font-sans">
+      <Navbar userEmail={user?.email} />
+      <div className="flex-1 flex overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-gradient-to-b from-background to-surface/40">
+          {children}
+        </main>
       </div>
-    </VaultProvider>
+    </div>
   );
 }

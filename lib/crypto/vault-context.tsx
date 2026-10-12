@@ -117,9 +117,14 @@ interface VaultContextType {
 
 const VaultContext = createContext<VaultContextType | null>(null);
 
+// Transient in-memory key buffer for the active tab (scrubbed on lock/logout, never persisted to disk or storage)
+let transientInMemoryMasterKey: Uint8Array | null = null;
+
 export function VaultProvider({ children }: { children: React.ReactNode }) {
-  const [status, setStatus] = useState<VaultStatus>("LOADING");
-  const [masterKey, setMasterKey] = useState<Uint8Array | null>(null);
+  const [masterKey, setMasterKey] = useState<Uint8Array | null>(() => transientInMemoryMasterKey);
+  const [status, setStatus] = useState<VaultStatus>(() =>
+    transientInMemoryMasterKey ? "UNLOCKED" : "LOADING"
+  );
   const [hasVaultKey, setHasVaultKey] = useState<boolean>(false);
 
   const refreshVaultStatus = useCallback(async () => {
@@ -132,7 +137,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       if (data.initialized) {
         setHasVaultKey(true);
-        setStatus(masterKey ? "UNLOCKED" : "LOCKED");
+        setStatus(transientInMemoryMasterKey ? "UNLOCKED" : "LOCKED");
       } else {
         setHasVaultKey(false);
         setStatus("UNINITIALIZED");
@@ -140,15 +145,22 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     } catch {
       setStatus("LOCKED");
     }
-  }, [masterKey]);
+  }, []);
 
   useEffect(() => {
     refreshVaultStatus();
   }, [refreshVaultStatus]);
 
   const lockVault = useCallback(() => {
+    if (transientInMemoryMasterKey) {
+      try {
+        transientInMemoryMasterKey.fill(0);
+      } catch {
+        // ignore
+      }
+      transientInMemoryMasterKey = null;
+    }
     if (masterKey) {
-      // Best-effort memory scrub: overwrite buffer
       try {
         masterKey.fill(0);
       } catch {
@@ -198,6 +210,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         throw new Error(err.error || "Initialization failed");
       }
 
+      transientInMemoryMasterKey = generatedMasterKey;
       setMasterKey(generatedMasterKey);
       setHasVaultKey(true);
       setStatus("UNLOCKED");
@@ -224,6 +237,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     const nonce = base64ToBuffer(envelope.keyEncryptionNonce);
 
     const decryptedMasterKey = await decryptMasterKey(ciphertext, kek, nonce);
+    transientInMemoryMasterKey = decryptedMasterKey;
     setMasterKey(decryptedMasterKey);
     setStatus("UNLOCKED");
     return true;
@@ -261,6 +275,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Failed to save updated vault envelope.");
       }
 
+      transientInMemoryMasterKey = recoveredMasterKey;
       setMasterKey(recoveredMasterKey);
       setStatus("UNLOCKED");
       return true;

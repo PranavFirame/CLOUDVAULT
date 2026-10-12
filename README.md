@@ -206,4 +206,4 @@ tar -xzvf cloudvault_objects_YYYYMMDD.tar.gz -C ./
 
 ## 8. License
 
-@Pranav Firame License. Designed with highest-standard cryptographic engineering.
+@Pranav Firame 2026. Designed with highest-standard cryptographic engineering.

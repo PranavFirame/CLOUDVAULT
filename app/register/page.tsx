@@ -277,9 +277,7 @@ SECURITY WARNING:
 export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <VaultProvider>
-        <RegisterForm />
-      </VaultProvider>
+      <RegisterForm />
     </div>
   );
 }

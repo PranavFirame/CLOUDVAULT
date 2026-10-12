@@ -154,9 +154,7 @@ function RecoveryForm() {
 export default function RecoverPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <VaultProvider>
-        <RecoveryForm />
-      </VaultProvider>
+      <RecoveryForm />
     </div>
   );
 }
