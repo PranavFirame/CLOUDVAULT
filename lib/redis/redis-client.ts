@@ -6,6 +6,9 @@ const memoryRateLimits = new Map<string, { count: number; expiresAt: number }>()
 const UPSTASH_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
+let redisClient: Redis | null = null;
+let redisIsAvailable = false;
+
 export function getRedisClient(): Redis | null {
   if (redisClient) return redisClient;
 

@@ -12,9 +12,9 @@ export function Progress({
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
-    <div className={`w-full bg-slate-800 rounded-full h-2 overflow-hidden ${className}`}>
+    <div className={`w-full bg-slate-200 dark:bg-zinc-800/80 rounded-full h-1.5 overflow-hidden backdrop-blur-sm ${className}`}>
       <div
-        className="bg-brand-500 h-2 rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(14,165,233,0.5)]"
+        className="bg-[rgb(240_158_79)] h-full rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(240,158,79,0.5)]"
         style={{ width: `${percentage}%` }}
       />
     </div>
