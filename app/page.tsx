@@ -22,12 +22,40 @@ import {
   Search,
   Sun,
   Moon,
+  Menu,
+  X,
 } from "lucide-react";
 import { useTheme } from "../components/theme-provider";
 
 export default function LandingPage() {
   const { resolvedTheme, setTheme } = useTheme();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { label: "Features", href: "features" },
+    { label: "Security", href: "security" },
+    { label: "How It Works", href: "how-it-works" },
+    { label: "FAQ", href: "faq" },
+  ];
+
+  const handleScrollTo = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    targetId: string
+  ) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const target = document.getElementById(targetId);
+    if (target) {
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      if (typeof window !== "undefined" && window.history?.pushState) {
+        window.history.pushState(null, "", `#${targetId}`);
+      }
+    }
+  };
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -55,8 +83,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-[rgb(240_158_79)] selection:text-[#131316]">
       {/* Top Floating Navigation Pill */}
-      <header className="sticky top-3 sm:top-4 z-50 px-2 sm:px-4 md:px-6 transition-all flex justify-center">
-        <div className="nav-pill rounded-full max-w-4xl w-full px-3 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+      <header className="sticky top-3 sm:top-4 z-50 px-2 sm:px-4 md:px-6 transition-all flex flex-col items-center">
+        <div className="nav-pill rounded-full max-w-4xl w-full px-3 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-2 shadow-lg backdrop-blur-xl">
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[rgba(240,158,79,0.1)] border border-[rgba(240,158,79,0.3)] flex items-center justify-center text-[rgb(240_158_79)] shadow-[0_0_12px_rgba(240,158,79,0.2)] shrink-0">
               <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -69,10 +97,16 @@ export default function LandingPage() {
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#security" className="hover:text-foreground transition-colors">Security</a>
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a>
-            <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                href={`#${item.href}`}
+                onClick={(e) => handleScrollTo(e, item.href)}
+                className="hover:text-foreground hover:text-[rgb(240_158_79)] transition-colors cursor-pointer py-1"
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
 
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
@@ -82,6 +116,14 @@ export default function LandingPage() {
               title="Toggle theme"
             >
               {resolvedTheme === "dark" ? <Sun className="w-4 h-4 text-[rgb(240_158_79)]" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-1.5 sm:p-2 rounded-full text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors shrink-0"
+              title={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
             <Link
               href="/login"
@@ -98,6 +140,23 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+
+        {/* Mobile Dropdown Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-2 nav-pill rounded-2xl p-3 w-full max-w-4xl flex flex-col gap-1 shadow-2xl border border-surface-border bg-surface/95 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                href={`#${item.href}`}
+                onClick={(e) => handleScrollTo(e, item.href)}
+                className="text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-[rgb(240_158_79)] py-2 px-3 rounded-xl hover:bg-surface-raised transition-colors flex items-center justify-between cursor-pointer"
+              >
+                <span>{item.label}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+              </a>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
@@ -127,7 +186,8 @@ export default function LandingPage() {
             </Link>
             <a
               href="#features"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-surface border border-surface-border text-foreground hover:bg-surface-raised font-medium text-sm backdrop-blur-md transition-all"
+              onClick={(e) => handleScrollTo(e, "features")}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-surface border border-surface-border text-foreground hover:bg-surface-raised font-medium text-sm backdrop-blur-md transition-all cursor-pointer"
             >
               Explore Features
             </a>
@@ -215,7 +275,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-6 border-t border-surface-border bg-surface-raised/30 backdrop-blur-md">
+      <section id="features" className="scroll-mt-24 sm:scroll-mt-28 py-20 px-6 border-t border-surface-border bg-surface-raised/30 backdrop-blur-md">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -261,7 +321,7 @@ export default function LandingPage() {
       </section>
 
       {/* Security Architecture Section */}
-      <section id="security" className="py-20 px-6 border-t border-surface-border">
+      <section id="security" className="scroll-mt-24 sm:scroll-mt-28 py-20 px-6 border-t border-surface-border">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -327,7 +387,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 px-6 border-t border-surface-border bg-surface-raised/20">
+      <section id="how-it-works" className="scroll-mt-24 sm:scroll-mt-28 py-20 px-6 border-t border-surface-border bg-surface-raised/20">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -367,7 +427,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 px-6 border-t border-surface-border">
+      <section id="faq" className="scroll-mt-24 sm:scroll-mt-28 py-20 px-6 border-t border-surface-border">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
