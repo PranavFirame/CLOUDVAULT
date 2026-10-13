@@ -3,21 +3,27 @@ import Redis from "ioredis";
 // Memory fallback store for fail-safe rate limiting when Redis is unavailable
 const memoryRateLimits = new Map<string, { count: number; expiresAt: number }>();
 
-let redisClient: Redis | null = null;
-let redisIsAvailable = false;
+const UPSTASH_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 export function getRedisClient(): Redis | null {
   if (redisClient) return redisClient;
 
-  const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
+  // If using Upstash REST, ioredis is not strictly needed
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl && (UPSTASH_REST_URL || process.env.NODE_ENV === "production")) {
+    return null;
+  }
+
+  const connectionString = redisUrl || "redis://localhost:6379";
 
   try {
-    redisClient = new Redis(redisUrl, {
+    redisClient = new Redis(connectionString, {
       maxRetriesPerRequest: 1,
       connectTimeout: 800,
       lazyConnect: true,
       retryStrategy(times) {
-        if (times > 3) return null; // stop reconnecting if down
+        if (times > 3) return null;
         return Math.min(times * 100, 1000);
       },
     });
@@ -59,6 +65,41 @@ export async function checkRateLimit(
 ): Promise<RateLimitResult> {
   const client = getRedisClient();
 
+  // 1. Try Upstash REST API if configured
+  if (UPSTASH_REST_URL && UPSTASH_REST_TOKEN) {
+    try {
+      const redisKey = `ratelimit:${key}`;
+      // Execute INCR and EXPIRE in Upstash REST pipeline
+      const pipelineRes = await fetch(`${UPSTASH_REST_URL}/pipeline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${UPSTASH_REST_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          ["INCR", redisKey],
+          ["EXPIRE", redisKey, windowSeconds],
+        ]),
+        cache: "no-store",
+      });
+
+      if (pipelineRes.ok) {
+        const results = await pipelineRes.json();
+        const count = results[0]?.result;
+        if (typeof count === "number") {
+          return {
+            allowed: count <= limit,
+            remaining: Math.max(0, limit - count),
+            resetSeconds: windowSeconds,
+          };
+        }
+      }
+    } catch {
+      // Fall through to TCP or memory fallback
+    }
+  }
+
+  // 2. Try TCP Redis client if available
   if (redisIsAvailable && client) {
     try {
       const now = Date.now();
