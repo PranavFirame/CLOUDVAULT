@@ -7,6 +7,13 @@ export const metadata: Metadata = {
   title: "CloudVault — Premium Zero-Knowledge Encrypted Cloud Storage",
   description:
     "Store, organize, and protect your files in one secure, beautifully simple zero-knowledge encrypted workspace.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
