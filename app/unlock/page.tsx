@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff, ShieldCheck, Sun, Moon, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { useVault } from "@/lib/crypto/vault-context";
-import { useTheme } from "@/components/theme-provider";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Card } from "../../components/ui/card";
+import { useVault } from "../../lib/crypto/vault-context";
+import { useTheme } from "../../components/theme-provider";
 
 export default function UnlockPage() {
   const router = useRouter();

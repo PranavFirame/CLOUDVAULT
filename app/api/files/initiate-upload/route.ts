@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { getSessionUser } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
-import { InitiateUploadSchema } from "@/lib/validation/schemas";
+import { getSessionUser } from "../../../../lib/auth/auth-service";
+import { db } from "../../../../lib/db/db-client";
+import { InitiateUploadSchema } from "../../../../lib/validation/schemas";
 
 const MAX_UPLOAD_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE_BYTES || "104857600", 10);
 const MAX_STORAGE_LIMIT = parseInt(process.env.MAX_STORAGE_BYTES || "5368709120", 10);

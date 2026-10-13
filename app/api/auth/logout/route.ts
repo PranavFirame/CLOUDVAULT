@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { revokeCurrentSession, getSessionUser } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
+import { revokeCurrentSession, getSessionUser } from "../../../../lib/auth/auth-service";
+import { db } from "../../../../lib/db/db-client";
 
 export async function POST() {
   const sessionUser = await getSessionUser();

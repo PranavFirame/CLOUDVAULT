@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
-import { defaultLocalStorageProvider } from "@/lib/storage/local-storage-provider";
-import { UpdateFileMetadataSchema } from "@/lib/validation/schemas";
+import { getSessionUser } from "../../../../lib/auth/auth-service";
+import { db } from "../../../../lib/db/db-client";
+import { defaultLocalStorageProvider } from "../../../../lib/storage/local-storage-provider";
+import { UpdateFileMetadataSchema } from "../../../../lib/validation/schemas";
 
 export async function GET(
   req: NextRequest,

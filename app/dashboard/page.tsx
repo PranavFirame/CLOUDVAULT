@@ -25,11 +25,11 @@ import {
   FileSpreadsheet,
   Plus,
 } from "lucide-react";
-import { Card, CardTitle, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useVault, DecryptedFileInfo } from "@/lib/crypto/vault-context";
+import { Card, CardTitle, CardHeader } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Progress } from "../../components/ui/progress";
+import { useVault, DecryptedFileInfo } from "../../lib/crypto/vault-context";
 
 export default function DashboardPage() {
   const { isUnlocked, prepareEncryptedUpload, decryptFileMetadataItem, decryptDownloadedFile } =

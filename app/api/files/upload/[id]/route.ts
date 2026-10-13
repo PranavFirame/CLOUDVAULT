@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
-import { defaultLocalStorageProvider } from "@/lib/storage/local-storage-provider";
+import { getSessionUser } from "../../../../../lib/auth/auth-service";
+import { db } from "../../../../../lib/db/db-client";
+import { defaultLocalStorageProvider } from "../../../../../lib/storage/local-storage-provider";
 
 export async function POST(
   req: NextRequest,

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LoginSchema } from "@/lib/validation/schemas";
-import { verifyAccountPassword, createSession } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
-import { checkRateLimit } from "@/lib/redis/redis-client";
+import { LoginSchema } from "../../../../lib/validation/schemas";
+import { verifyAccountPassword, createSession } from "../../../../lib/auth/auth-service";
+import { db } from "../../../../lib/db/db-client";
+import { checkRateLimit } from "../../../../lib/redis/redis-client";
 
 export async function POST(req: NextRequest) {
   try {

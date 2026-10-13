@@ -13,11 +13,11 @@ import {
   FileKey,
   RefreshCw,
 } from "lucide-react";
-import { Card, CardTitle, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { useVault } from "@/lib/crypto/vault-context";
+import { Card, CardTitle, CardHeader } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Badge } from "../../../components/ui/badge";
+import { useVault } from "../../../lib/crypto/vault-context";
 
 export default function SecurityCenterPage() {
   const { isUnlocked, lockVault, changePassphrase } = useVault();

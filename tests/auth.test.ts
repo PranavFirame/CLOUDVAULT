@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hashAccountPassword, verifyAccountPassword } from "@/lib/auth/auth-service";
+import { hashAccountPassword, verifyAccountPassword } from "../lib/auth/auth-service";
 
 describe("Account Authentication & Hashing Security", () => {
   it("hashes password with scrypt and unique salt", async () => {

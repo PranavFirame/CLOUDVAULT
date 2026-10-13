@@ -37,7 +37,7 @@ import {
   useVault,
   DecryptedFileInfo,
   DecryptedFolderInfo,
-} from "@/lib/crypto/vault-context";
+} from "../../../lib/crypto/vault-context";
 
 export default function FilesPage() {
   const {

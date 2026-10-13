@@ -13,8 +13,8 @@ import {
   KeyRound,
   Lock,
 } from "lucide-react";
-import { useVault } from "@/lib/crypto/vault-context";
-import { useTheme } from "@/components/theme-provider";
+import { useVault } from "../../lib/crypto/vault-context";
+import { useTheme } from "../../components/theme-provider";
 
 export function Navbar({
   userEmail,

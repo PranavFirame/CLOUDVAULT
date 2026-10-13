@@ -17,7 +17,7 @@ import {
   decryptMetadata,
   generateSecureRandomBytes,
   DEFAULT_KDF_PARAMS,
-} from "@/lib/crypto/client-crypto";
+} from "../lib/crypto/client-crypto";
 
 describe("CloudVault Zero-Knowledge Cryptographic Engine", () => {
   it("generates a fresh 256-bit (32-byte) master key", () => {

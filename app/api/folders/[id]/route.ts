@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
-import { RenameFolderSchema } from "@/lib/validation/schemas";
+import { getSessionUser } from "../../../../lib/auth/auth-service";
+import { db } from "../../../../lib/db/db-client";
+import { RenameFolderSchema } from "../../../../lib/validation/schemas";
 
 export async function PATCH(
   req: NextRequest,

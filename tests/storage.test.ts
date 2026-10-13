@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "fs";
 import path from "path";
-import { LocalStorageProvider } from "@/lib/storage/local-storage-provider";
+import { LocalStorageProvider } from "../lib/storage/local-storage-provider";
 
 describe("LocalStorageProvider Security & Invariants", () => {
   const testDir = path.join(process.cwd(), "data", "test_objects");

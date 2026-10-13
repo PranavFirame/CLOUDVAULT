@@ -15,11 +15,11 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { useVault } from "@/lib/crypto/vault-context";
-import { useTheme } from "@/components/theme-provider";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Card } from "../../components/ui/card";
+import { useVault } from "../../lib/crypto/vault-context";
+import { useTheme } from "../../components/theme-provider";
 
 export default function RegisterPage() {
   const router = useRouter();

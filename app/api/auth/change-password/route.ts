@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser, verifyAccountPassword, hashAccountPassword } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
-import { ChangePasswordSchema } from "@/lib/validation/schemas";
+import { getSessionUser, verifyAccountPassword, hashAccountPassword } from "../../../../lib/auth/auth-service";
+import { db } from "../../../../lib/db/db-client";
+import { ChangePasswordSchema } from "../../../../lib/validation/schemas";
 
 export async function POST(req: NextRequest) {
   const sessionUser = await getSessionUser();

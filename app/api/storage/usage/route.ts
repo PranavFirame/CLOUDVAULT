@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
+import { getSessionUser } from "../../../../lib/auth/auth-service";
+import { db } from "../../../../lib/db/db-client";
 
 const MAX_STORAGE_LIMIT = parseInt(process.env.MAX_STORAGE_BYTES || "5368709120", 10);
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { AppLayout } from "@/components/layout/app-layout";
+import { AppLayout } from "../../components/layout/app-layout";
 
 export default function DashboardLayout({
   children,

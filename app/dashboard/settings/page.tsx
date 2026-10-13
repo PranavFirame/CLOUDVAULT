@@ -15,11 +15,11 @@ import {
   Moon,
   Laptop,
 } from "lucide-react";
-import { Card, CardTitle, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useVault } from "@/lib/crypto/vault-context";
-import { useTheme } from "@/components/theme-provider";
+import { Card, CardTitle, CardHeader } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { useVault } from "../../../lib/crypto/vault-context";
+import { useTheme } from "../../../components/theme-provider";
 
 export default function SettingsPage() {
   const { lockVault } = useVault();

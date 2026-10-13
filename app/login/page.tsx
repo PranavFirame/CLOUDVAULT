@@ -4,10 +4,10 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Shield, Eye, EyeOff, Sun, Moon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { useTheme } from "@/components/theme-provider";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Card } from "../../components/ui/card";
+import { useTheme } from "../../components/theme-provider";
 
 export default function LoginPage() {
   const router = useRouter();

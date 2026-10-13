@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth/auth-service";
-import { db } from "@/lib/db/db-client";
-import { CreateFolderSchema } from "@/lib/validation/schemas";
+import { getSessionUser } from "../../../lib/auth/auth-service";
+import { db } from "../../../lib/db/db-client";
+import { CreateFolderSchema } from "../../../lib/validation/schemas";
 
 export async function GET(req: NextRequest) {
   const sessionUser = await getSessionUser();
