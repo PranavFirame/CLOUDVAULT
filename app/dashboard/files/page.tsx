@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Folder,
   FolderPlus,
-  Upload,
+  UploadCloud,
   Download,
   Trash2,
   Edit2,
@@ -14,9 +15,11 @@ import {
   Grid,
   List,
   File as FileIcon,
+  Files as FilesIcon,
   ChevronRight,
   ArrowUpDown,
   Lock,
+  Unlock,
   Info,
   CheckCircle2,
   FileText,
@@ -24,22 +27,43 @@ import {
   Image as ImageIcon,
   Archive,
   FileSpreadsheet,
+  Film,
   Eye,
   X,
   Share2,
+  Star,
+  CheckSquare,
+  Square,
+  MoreVertical,
+  RefreshCw,
+  FolderOpen,
+  Plus,
+  Copy,
+  Check,
+  Shield,
+  Clock,
+  Filter,
 } from "lucide-react";
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Dialog } from "../../../components/ui/dialog";
 import { Progress } from "../../../components/ui/progress";
+import { Badge } from "../../../components/ui/badge";
 import {
   useVault,
   DecryptedFileInfo,
   DecryptedFolderInfo,
 } from "../../../lib/crypto/vault-context";
 
+type CategoryFilter = "all" | "documents" | "images" | "media" | "archives" | "code" | "favorites";
+
 export default function FilesPage() {
+  const searchParams = useSearchParams();
+  const initialCategoryParam = searchParams.get("category");
+  const initialTabParam = searchParams.get("tab");
+  const initialSearchQuery = searchParams.get("q") || "";
+
   const {
     isUnlocked,
     prepareEncryptedUpload,
@@ -61,11 +85,22 @@ export default function FilesPage() {
   const [files, setFiles] = useState<DecryptedFileInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Search & View state
-  const [searchQuery, setSearchQuery] = useState("");
+  // Search & Filters state
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>(
+    initialTabParam === "favorites"
+      ? "favorites"
+      : (initialCategoryParam as CategoryFilter) || "all"
+  );
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [sortBy, setSortBy] = useState<"name" | "size" | "date">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  // Favorites state (persisted in localStorage)
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
+  // Multi-selection state
+  const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
 
   // Upload state
   const [uploading, setUploading] = useState(false);
@@ -77,13 +112,17 @@ export default function FilesPage() {
   // Modals state
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
   const [activeFileDetails, setActiveFileDetails] = useState<DecryptedFileInfo | null>(null);
   const [renameTarget, setRenameTarget] = useState<DecryptedFileInfo | null>(null);
   const [newRenameValue, setNewRenameValue] = useState("");
+  const [renameFolderTarget, setRenameFolderTarget] = useState<DecryptedFolderInfo | null>(null);
+  const [newFolderRenameValue, setNewFolderRenameValue] = useState("");
 
   const [moveTarget, setMoveTarget] = useState<DecryptedFileInfo | null>(null);
   const [selectedDestinationFolder, setSelectedDestinationFolder] = useState<string>("root");
+  const [isMoving, setIsMoving] = useState(false);
 
   // In-browser Preview State
   const [previewTarget, setPreviewTarget] = useState<DecryptedFileInfo | null>(null);
@@ -97,36 +136,113 @@ export default function FilesPage() {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Load favorites and viewMode preference from localStorage
+  useEffect(() => {
+    try {
+      const savedFavs = localStorage.getItem("cloudvault_favorites");
+      if (savedFavs) {
+        setFavoriteIds(new Set(JSON.parse(savedFavs)));
+      }
+      const savedView = localStorage.getItem("cloudvault_view_mode");
+      if (savedView === "grid" || savedView === "list") {
+        setViewMode(savedView);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const toggleFavorite = (fileId: string) => {
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) {
+        next.delete(fileId);
+      } else {
+        next.add(fileId);
+      }
+      try {
+        localStorage.setItem("cloudvault_favorites", JSON.stringify(Array.from(next)));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
+
+  const handleToggleViewMode = (mode: "grid" | "list") => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem("cloudvault_view_mode", mode);
+    } catch {
+      // ignore
+    }
+  };
+
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const getFileCategory = (filename: string, mimeType: string): CategoryFilter => {
+    const ext = filename.split(".").pop()?.toLowerCase() || "";
+    if (
+      ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"].includes(ext) ||
+      mimeType.startsWith("image/")
+    ) {
+      return "images";
+    }
+    if (
+      ["pdf", "doc", "docx", "txt", "md", "rtf", "odt"].includes(ext) ||
+      mimeType.includes("pdf") ||
+      mimeType.includes("document") ||
+      mimeType.includes("text")
+    ) {
+      return "documents";
+    }
+    if (
+      ["mp4", "webm", "mov", "avi", "mkv", "mp3", "wav", "ogg", "flac"].includes(ext) ||
+      mimeType.startsWith("video/") ||
+      mimeType.startsWith("audio/")
+    ) {
+      return "media";
+    }
+    if (["zip", "tar", "gz", "7z", "rar", "bz2", "xz"].includes(ext)) {
+      return "archives";
+    }
+    if (
+      ["ts", "tsx", "js", "jsx", "py", "rs", "go", "json", "html", "css", "sql", "sh", "yaml", "yml"].includes(
+        ext
+      )
+    ) {
+      return "code";
+    }
+    return "all";
+  };
+
   const getFileTypeIcon = (filename: string, mimeType: string) => {
-    const ext = filename.split(".").pop()?.toLowerCase();
-    if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext || "") || mimeType.startsWith("image/")) {
-      return <ImageIcon className="w-4 h-4 text-purple-500 shrink-0" />;
+    const cat = getFileCategory(filename, mimeType);
+    switch (cat) {
+      case "images":
+        return <ImageIcon className="w-4 h-4 text-purple-400 shrink-0" />;
+      case "documents":
+        return <FileText className="w-4 h-4 text-sky-400 shrink-0" />;
+      case "media":
+        return <Film className="w-4 h-4 text-rose-400 shrink-0" />;
+      case "archives":
+        return <Archive className="w-4 h-4 text-amber-400 shrink-0" />;
+      case "code":
+        return <FileCode className="w-4 h-4 text-emerald-400 shrink-0" />;
+      default:
+        return <FileIcon className="w-4 h-4 text-[rgb(240_158_79)] shrink-0" />;
     }
-    if (["ts", "tsx", "js", "jsx", "py", "rs", "go", "json", "html", "css", "sql"].includes(ext || "")) {
-      return <FileCode className="w-4 h-4 text-emerald-500 shrink-0" />;
-    }
-    if (["zip", "tar", "gz", "7z", "rar"].includes(ext || "")) {
-      return <Archive className="w-4 h-4 text-amber-500 shrink-0" />;
-    }
-    if (["csv", "xlsx", "xls"].includes(ext || "")) {
-      return <FileSpreadsheet className="w-4 h-4 text-teal-500 shrink-0" />;
-    }
-    if (["pdf", "txt", "md", "doc", "docx"].includes(ext || "")) {
-      return <FileText className="w-4 h-4 text-sky-500 shrink-0" />;
-    }
-    return <FileIcon className="w-4 h-4 text-brand-500 shrink-0" />;
   };
 
   const fetchFolderContent = useCallback(async () => {
     setLoading(true);
+    setSelectedFileIds(new Set());
     try {
       const folderParam = currentFolderId ? `?folderId=${currentFolderId}` : "?folderId=root";
       const parentParam = currentFolderId
@@ -167,6 +283,7 @@ export default function FilesPage() {
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
+    setIsCreatingFolder(true);
 
     try {
       const payload = await createEncryptedFolderPayload(newFolderName.trim());
@@ -187,6 +304,8 @@ export default function FilesPage() {
       await fetchFolderContent();
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : "Folder creation failed");
+    } finally {
+      setIsCreatingFolder(false);
     }
   };
 
@@ -230,7 +349,7 @@ export default function FilesPage() {
         }
 
         const { fileId } = await initRes.json();
-        setUploadStatus(`Saving ciphertext for ${file.name}...`);
+        setUploadStatus(`Transmitting ciphertext for ${file.name}...`);
 
         const uploadRes = await fetch(`/api/files/upload/${fileId}`, {
           method: "POST",
@@ -242,7 +361,8 @@ export default function FilesPage() {
           throw new Error(`Failed to upload ${file.name}`);
         }
       } catch (err: unknown) {
-        setErrorMessage(err instanceof Error ? err.message : "Upload error");
+        const msg = err instanceof Error ? err.message : "Upload error";
+        setErrorMessage(msg);
         break;
       }
     }
@@ -278,6 +398,34 @@ export default function FilesPage() {
     }
   };
 
+  // Bulk download selected files
+  const handleBulkDownload = async () => {
+    const selectedFiles = files.filter((f) => selectedFileIds.has(f.id));
+    for (const f of selectedFiles) {
+      await handleDownload(f);
+    }
+  };
+
+  // Bulk delete selected files
+  const handleBulkDelete = async () => {
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete ${selectedFileIds.size} selected file(s)?`
+      )
+    )
+      return;
+
+    try {
+      for (const id of Array.from(selectedFileIds)) {
+        await fetch(`/api/files/${id}`, { method: "DELETE" });
+      }
+      setSelectedFileIds(new Set());
+      await fetchFolderContent();
+    } catch {
+      // ignore
+    }
+  };
+
   const handlePreview = async (file: DecryptedFileInfo) => {
     if (!isUnlocked) {
       setErrorMessage("Please unlock your vault before previewing files.");
@@ -297,8 +445,13 @@ export default function FilesPage() {
       const { decryptedBlob } = await decryptDownloadedFile(file, ciphertext);
 
       const ext = file.name.split(".").pop()?.toLowerCase();
-      const isImg = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext || "") || file.type.startsWith("image/");
-      const isTxt = ["txt", "md", "json", "js", "ts", "tsx", "html", "css", "py"].includes(ext || "") || file.type.startsWith("text/");
+      const isImg =
+        ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext || "") ||
+        file.type.startsWith("image/");
+      const isTxt =
+        ["txt", "md", "json", "js", "ts", "tsx", "html", "css", "py", "sql", "sh", "yml", "yaml"].includes(
+          ext || ""
+        ) || file.type.startsWith("text/");
 
       if (isImg) {
         const url = URL.createObjectURL(decryptedBlob);
@@ -358,78 +511,153 @@ export default function FilesPage() {
         }),
       });
 
-      if (res.ok) {
-        setRenameTarget(null);
-        setNewRenameValue("");
-        await fetchFolderContent();
-      }
+      if (!res.ok) throw new Error("Rename failed");
+
+      setRenameTarget(null);
+      setNewRenameValue("");
+      await fetchFolderContent();
     } catch (err: unknown) {
-      setErrorMessage(err instanceof Error ? err.message : "Rename failed");
+      setErrorMessage(err instanceof Error ? err.message : "Failed to rename file");
     }
   };
 
-  const handleMoveFile = async (e: React.FormEvent) => {
+  const handleFolderRenameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renameFolderTarget || !newFolderRenameValue.trim()) return;
+
+    try {
+      const payload = await createEncryptedFolderPayload(newFolderRenameValue.trim());
+      const res = await fetch(`/api/folders/${renameFolderTarget.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          encryptedFolderName: payload.encryptedFolderName,
+          nameNonce: payload.nameNonce,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Folder rename failed");
+
+      setRenameFolderTarget(null);
+      setNewFolderRenameValue("");
+      await fetchFolderContent();
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : "Failed to rename folder");
+    }
+  };
+
+  const handleMoveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!moveTarget) return;
 
+    setIsMoving(true);
     try {
-      const destination = selectedDestinationFolder === "root" ? null : selectedDestinationFolder;
+      const targetFolderId = selectedDestinationFolder === "root" ? null : selectedDestinationFolder;
       const res = await fetch(`/api/files/${moveTarget.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folderId: destination }),
+        body: JSON.stringify({
+          folderId: targetFolderId,
+        }),
       });
 
-      if (res.ok) {
-        setMoveTarget(null);
-        await fetchFolderContent();
-      }
-    } catch {
-      // ignore
+      if (!res.ok) throw new Error("Move failed");
+
+      setMoveTarget(null);
+      await fetchFolderContent();
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : "Failed to move file");
+    } finally {
+      setIsMoving(false);
     }
   };
 
-  const copyShareLink = () => {
-    if (!shareTarget) return;
-    const url = `${window.location.origin}/dashboard/files?focus=${shareTarget.id}`;
-    navigator.clipboard.writeText(url);
-    setCopiedShare(true);
-    setTimeout(() => setCopiedShare(false), 2000);
-  };
-
-  // Filter & Sort
-  const filteredFiles = useMemo(() => {
-    let result = [...files];
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter((f) => f.name.toLowerCase().includes(query));
+  const navigateToFolder = (folderId: string | null, folderName: string) => {
+    setCurrentFolderId(folderId);
+    if (folderId === null) {
+      setFolderBreadcrumbs([{ id: null, name: "Root Vault" }]);
+    } else {
+      setFolderBreadcrumbs((prev) => [...prev, { id: folderId, name: folderName }]);
     }
-    result.sort((a, b) => {
-      let comparison = 0;
-      if (sortBy === "name") comparison = a.name.localeCompare(b.name);
-      else if (sortBy === "size") comparison = a.size - b.size;
-      else if (sortBy === "date")
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-
-      return sortOrder === "asc" ? comparison : -comparison;
-    });
-    return result;
-  }, [files, searchQuery, sortBy, sortOrder]);
-
-  const enterFolder = (folder: DecryptedFolderInfo) => {
-    setCurrentFolderId(folder.id);
-    setFolderBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
   };
 
-  const navigateBreadcrumb = (index: number) => {
+  const navigateToBreadcrumb = (index: number) => {
     const target = folderBreadcrumbs[index];
     setCurrentFolderId(target.id);
     setFolderBreadcrumbs((prev) => prev.slice(0, index + 1));
   };
 
+  // Filtered & Sorted Files
+  const filteredFiles = useMemo(() => {
+    return files
+      .filter((file) => {
+        // Search filter
+        if (
+          searchQuery.trim() &&
+          !file.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+        ) {
+          return false;
+        }
+
+        // Category filter
+        if (selectedCategory === "favorites") {
+          return favoriteIds.has(file.id);
+        }
+        if (selectedCategory !== "all") {
+          const cat = getFileCategory(file.name, file.type);
+          return cat === selectedCategory;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "name") {
+          return sortOrder === "asc"
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        }
+        if (sortBy === "size") {
+          return sortOrder === "asc" ? a.size - b.size : b.size - a.size;
+        }
+        if (sortBy === "date") {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+        }
+        return 0;
+      });
+  }, [files, searchQuery, selectedCategory, favoriteIds, sortBy, sortOrder]);
+
+  const toggleSelectAll = () => {
+    if (selectedFileIds.size === filteredFiles.length) {
+      setSelectedFileIds(new Set());
+    } else {
+      setSelectedFileIds(new Set(filteredFiles.map((f) => f.id)));
+    }
+  };
+
+  const toggleSelectFile = (fileId: string) => {
+    setSelectedFileIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) next.delete(fileId);
+      else next.add(fileId);
+      return next;
+    });
+  };
+
+  const categoryPills: Array<{ key: CategoryFilter; label: string; icon: React.ReactNode }> = [
+    { key: "all", label: "All Files", icon: <FilesIcon className="w-3.5 h-3.5" /> },
+    { key: "documents", label: "Documents", icon: <FileText className="w-3.5 h-3.5 text-sky-400" /> },
+    { key: "images", label: "Images", icon: <ImageIcon className="w-3.5 h-3.5 text-purple-400" /> },
+    { key: "media", label: "Media", icon: <Film className="w-3.5 h-3.5 text-rose-400" /> },
+    { key: "archives", label: "Archives", icon: <Archive className="w-3.5 h-3.5 text-amber-400" /> },
+    { key: "code", label: "Code", icon: <FileCode className="w-3.5 h-3.5 text-emerald-400" /> },
+    { key: "favorites", label: "Favorites", icon: <Star className="w-3.5 h-3.5 text-amber-400" /> },
+  ];
+
   return (
     <div
-      className="max-w-6xl mx-auto space-y-5 relative min-h-[calc(100vh-8rem)]"
+      className="max-w-6xl mx-auto space-y-5 pb-16"
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -456,55 +684,45 @@ export default function FilesPage() {
         }
       }}
     >
-      {/* Full-view Drag & Drop Overlay */}
-      {isDragOver && (
-        <div className="absolute inset-0 z-50 rounded-2xl bg-background/85 backdrop-blur-md border-2 border-dashed border-[rgb(240_158_79)] flex flex-col items-center justify-center pointer-events-none p-6 text-center animate-in fade-in-50 duration-200 shadow-[0_0_32px_rgba(240,158,79,0.25)]">
-          <div className="w-16 h-16 rounded-2xl bg-[rgba(240,158,79,0.15)] border border-[rgb(240_158_79)] text-[rgb(240_158_79)] flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(240,158,79,0.3)] animate-bounce">
-            <Upload className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">
-            Drop files to encrypt & store in this folder
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-mono max-w-sm">
-            {isUnlocked
-              ? "AES-256-GCM browser encryption will run immediately for each file"
-              : "Vault locked — unlock vault before dropping files to encrypt"}
-          </p>
-        </div>
-      )}
+      <input
+        type="file"
+        multiple
+        ref={fileInputRef}
+        onChange={(e) => handleFilesUpload(e.target.files)}
+        className="hidden"
+      />
 
-      {/* Header with Breadcrumbs & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
-            My Files
-          </h1>
+      {/* Breadcrumb & Primary Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
           {/* Breadcrumb Trail */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-            {folderBreadcrumbs.map((bc, idx) => (
-              <React.Fragment key={bc.id || "root"}>
-                {idx > 0 && <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />}
+          <nav className="flex items-center gap-1.5 text-xs font-mono text-slate-500 overflow-x-auto pb-1">
+            {folderBreadcrumbs.map((crumb, idx) => (
+              <React.Fragment key={crumb.id || "root"}>
+                {idx > 0 && <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />}
                 <button
-                  onClick={() => navigateBreadcrumb(idx)}
+                  onClick={() => navigateToBreadcrumb(idx)}
                   className={`hover:text-foreground transition-colors truncate max-w-[150px] ${
-                    idx === folderBreadcrumbs.length - 1 ? "font-semibold text-foreground" : ""
+                    idx === folderBreadcrumbs.length - 1
+                      ? "text-foreground font-semibold"
+                      : "text-slate-400"
                   }`}
                 >
-                  {bc.name}
+                  {crumb.name}
                 </button>
               </React.Fragment>
             ))}
-          </div>
+          </nav>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <span>{folderBreadcrumbs[folderBreadcrumbs.length - 1]?.name || "Files"}</span>
+            <span className="text-xs font-mono text-slate-500 font-normal">
+              ({filteredFiles.length} {filteredFiles.length === 1 ? "item" : "items"})
+            </span>
+          </h1>
         </div>
 
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="file"
-            multiple
-            ref={fileInputRef}
-            className="hidden"
-            onChange={(e) => handleFilesUpload(e.target.files)}
-          />
           <Button
             variant="secondary"
             size="sm"
@@ -512,7 +730,7 @@ export default function FilesPage() {
             onClick={() => setIsCreateFolderOpen(true)}
             className="text-xs"
           >
-            <FolderPlus className="w-3.5 h-3.5 mr-1 text-brand-500" /> New Folder
+            <FolderPlus className="w-3.5 h-3.5 mr-1.5" /> New Folder
           </Button>
 
           <Button
@@ -520,517 +738,944 @@ export default function FilesPage() {
             size="sm"
             disabled={!isUnlocked}
             onClick={() => fileInputRef.current?.click()}
-            className="text-xs"
+            className="text-xs shadow-md"
           >
-            <Upload className="w-3.5 h-3.5 mr-1" /> Upload Files
+            <Plus className="w-3.5 h-3.5 mr-1.5" /> Upload File
           </Button>
         </div>
       </div>
 
-      {errorMessage && (
-        <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400">
-          {errorMessage}
-        </div>
-      )}
-
-      {/* Upload Progress Bar if active */}
-      {uploading && (
-        <div className="vault-card p-4 space-y-2 bg-surface">
-          <div className="flex items-center justify-between text-xs font-mono text-brand-500">
-            <span>{uploadStatus}</span>
-            <span>{uploadProgress}%</span>
+      {/* Lock Warning */}
+      {!isUnlocked && (
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-700 dark:text-amber-300">
+          <div className="flex items-center gap-2.5">
+            <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>Vault memory is locked. Unlock to decrypt filenames and view files.</span>
           </div>
-          <Progress value={uploadProgress} />
-        </div>
-      )}
-
-      {/* Filter and View Controls Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-2.5 rounded-xl border border-surface-border">
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-          <input
-            type="text"
-            placeholder="Search decrypted files..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface-raised border border-surface-border rounded-lg pl-9 pr-3 py-1.5 text-xs text-foreground placeholder-slate-400 focus:outline-none focus:border-brand-500"
-          />
-        </div>
-
-        <div className="flex items-center justify-between sm:justify-end gap-2">
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-1 bg-surface-raised border border-surface-border rounded-lg px-2 py-1 text-xs text-slate-500">
-            <ArrowUpDown className="w-3 h-3 mr-0.5" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent text-foreground focus:outline-none cursor-pointer text-xs"
-            >
-              <option value="name" className="bg-surface">Name</option>
-              <option value="size" className="bg-surface">Size</option>
-              <option value="date" className="bg-surface">Date</option>
-            </select>
-            <button
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="ml-1 text-[10px] font-mono hover:text-foreground"
-            >
-              {sortOrder.toUpperCase()}
-            </button>
-          </div>
-
-          {/* View Toggle */}
-          <div className="flex items-center bg-surface-raised border border-surface-border rounded-lg p-0.5">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-1 rounded ${viewMode === "list" ? "bg-surface text-brand-500 shadow-sm" : "text-slate-400 hover:text-foreground"}`}
-              title="List view"
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-1 rounded ${viewMode === "grid" ? "bg-surface text-brand-500 shadow-sm" : "text-slate-400 hover:text-foreground"}`}
-              title="Grid view"
-            >
-              <Grid className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Folders Section */}
-      {folders.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            Folders
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-            {folders.map((folder) => (
-              <div
-                key={folder.id}
-                className="group vault-card bg-surface p-3 flex items-center justify-between cursor-pointer transition-all hover:border-brand-500/40"
-                onClick={() => enterFolder(folder)}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Folder className="w-4 h-4 text-brand-500 shrink-0" />
-                  <span className="text-xs font-medium text-foreground truncate">
-                    {folder.name}
-                  </span>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteFolder(folder.id);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-opacity"
-                  title="Delete folder"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Files Section */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            Files ({filteredFiles.length})
-          </h2>
-        </div>
-
-        {loading ? (
-          <div className="py-12 text-center text-xs text-slate-500 font-mono">
-            Loading and decrypting metadata envelopes...
-          </div>
-        ) : filteredFiles.length === 0 ? (
-          <Card className="py-16 text-center space-y-3">
-            <FileIcon className="w-10 h-10 text-slate-400 mx-auto" />
-            <p className="text-sm text-slate-500">No encrypted files in this folder.</p>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!isUnlocked}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Upload Encrypted File
+          <Link href="/unlock">
+            <Button variant="primary" size="sm" className="text-xs py-1 px-3">
+              Unlock Vault
             </Button>
-          </Card>
-        ) : viewMode === "list" ? (
-          /* LIST VIEW */
-          <Card className="overflow-hidden p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                <thead className="bg-surface-raised text-slate-500 border-b border-surface-border text-[11px] font-medium">
-                  <tr>
-                    <th className="px-3 sm:px-4 py-2.5">Name</th>
-                    <th className="px-3 sm:px-4 py-2.5">Size</th>
-                    <th className="hidden md:table-cell px-4 py-2.5">Type</th>
-                    <th className="hidden sm:table-cell px-4 py-2.5">Created</th>
-                    <th className="px-3 sm:px-4 py-2.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-surface-border">
-                  {filteredFiles.map((file) => (
-                    <tr key={file.id} className="hover:bg-surface-raised transition-colors group">
-                      <td className="px-3 sm:px-4 py-2.5 font-medium text-foreground flex items-center gap-2.5">
-                        {getFileTypeIcon(file.name, file.type)}
-                        <span className="truncate max-w-[140px] sm:max-w-xs">{file.name}</span>
-                      </td>
-                      <td className="px-3 sm:px-4 py-2.5 font-mono text-slate-500 text-[11px] sm:text-xs">
-                        {formatSize(file.size || file.ciphertextSize)}
-                      </td>
-                      <td className="hidden md:table-cell px-4 py-2.5 text-slate-500 font-mono text-[11px] truncate max-w-[120px]">
-                        {file.type}
-                      </td>
-                      <td className="hidden sm:table-cell px-4 py-2.5 text-slate-500 text-[11px]">
-                        {new Date(file.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => handlePreview(file)}
-                            className="p-1 text-slate-400 hover:text-brand-500 transition-colors"
-                            title="Preview file"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDownload(file)}
-                            className="p-1 text-slate-400 hover:text-brand-500 transition-colors"
-                            title="Download decrypted file"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setRenameTarget(file);
-                              setNewRenameValue(file.name);
-                            }}
-                            className="p-1 text-slate-400 hover:text-foreground transition-colors"
-                            title="Rename"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setMoveTarget(file)}
-                            className="p-1 text-slate-400 hover:text-foreground transition-colors"
-                            title="Move to folder"
-                          >
-                            <MoveRight className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setShareTarget(file)}
-                            className="p-1 text-slate-400 hover:text-brand-500 transition-colors"
-                            title="Share"
-                          >
-                            <Share2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setActiveFileDetails(file)}
-                            className="p-1 text-slate-400 hover:text-sky-500 transition-colors"
-                            title="Cryptographic info"
-                          >
-                            <Info className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFile(file.id)}
-                            className="p-1 text-slate-400 hover:text-rose-500 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        ) : (
-          /* GRID VIEW */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filteredFiles.map((file) => (
-              <Card key={file.id} className="p-4 space-y-3 hover:border-brand-500/40 transition-all flex flex-col justify-between group">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="w-10 h-10 rounded-lg bg-surface-raised border border-surface-border flex items-center justify-center shrink-0">
-                    {getFileTypeIcon(file.name, file.type)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handlePreview(file)}
-                      className="p-1 text-slate-400 hover:text-brand-500"
-                      title="Preview"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDownload(file)}
-                      className="p-1 text-slate-400 hover:text-brand-500"
-                      title="Download"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteFile(file.id)}
-                      className="p-1 text-slate-400 hover:text-rose-500"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
+          </Link>
+        </div>
+      )}
 
-                <div className="space-y-0.5">
-                  <div className="text-xs font-semibold text-foreground truncate" title={file.name}>
-                    {file.name}
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-mono">
-                    {formatSize(file.size || file.ciphertextSize)}
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-surface-border flex items-center justify-between text-[11px] text-slate-500 font-mono">
-                  <span>{new Date(file.createdAt).toLocaleDateString()}</span>
-                  <button
-                    onClick={() => setActiveFileDetails(file)}
-                    className="text-brand-500 hover:underline flex items-center gap-0.5"
-                  >
-                    <Info className="w-3 h-3" /> Info
-                  </button>
-                </div>
-              </Card>
-            ))}
+      {errorMessage && (
+        <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-between text-xs text-rose-600 dark:text-rose-400">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 shrink-0 text-rose-500" />
+            <span>{errorMessage}</span>
           </div>
-        )}
-      </div>
+          <button onClick={() => setErrorMessage(null)} className="text-slate-400 hover:text-foreground">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
-      {/* Dialog: Create Folder */}
+      {/* Search, Filter Tabs & View Controls */}
+      <Card className="p-3.5 space-y-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          {/* Search Bar */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Filter by decrypted filename..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 bg-surface-raised/70 border border-surface-border rounded-xl text-xs text-foreground placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[rgb(240_158_79)] focus:border-[rgb(240_158_79)] transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* View Mode & Sort Dropdowns */}
+          <div className="flex items-center justify-between sm:justify-end gap-2">
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-1.5 bg-surface-raised/70 border border-surface-border rounded-xl px-2.5 py-1 text-xs text-slate-400">
+              <ArrowUpDown className="w-3.5 h-3.5 text-[rgb(240_158_79)]" />
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [b, o] = e.target.value.split("-") as [any, any];
+                  setSortBy(b);
+                  setSortOrder(o);
+                }}
+                className="bg-transparent text-foreground text-xs focus:outline-none cursor-pointer"
+              >
+                <option value="name-asc" className="bg-surface text-foreground">Name (A-Z)</option>
+                <option value="name-desc" className="bg-surface text-foreground">Name (Z-A)</option>
+                <option value="size-desc" className="bg-surface text-foreground">Size (Largest)</option>
+                <option value="size-asc" className="bg-surface text-foreground">Size (Smallest)</option>
+                <option value="date-desc" className="bg-surface text-foreground">Date (Newest)</option>
+                <option value="date-asc" className="bg-surface text-foreground">Date (Oldest)</option>
+              </select>
+            </div>
+
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-surface-raised/70 border border-surface-border rounded-xl p-0.5">
+              <button
+                onClick={() => handleToggleViewMode("list")}
+                title="List View"
+                className={`p-1.5 rounded-lg transition-colors ${
+                  viewMode === "list"
+                    ? "bg-surface text-[rgb(240_158_79)] shadow-sm font-semibold"
+                    : "text-slate-400 hover:text-foreground"
+                }`}
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleToggleViewMode("grid")}
+                title="Grid View"
+                className={`p-1.5 rounded-lg transition-colors ${
+                  viewMode === "grid"
+                    ? "bg-surface text-[rgb(240_158_79)] shadow-sm font-semibold"
+                    : "text-slate-400 hover:text-foreground"
+                }`}
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 no-scrollbar">
+          {categoryPills.map((pill) => {
+            const isSelected = selectedCategory === pill.key;
+            return (
+              <button
+                key={pill.key}
+                onClick={() => setSelectedCategory(pill.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                  isSelected
+                    ? "bg-[rgba(240,158,79,0.15)] text-[rgb(240_158_79)] border border-[rgba(240,158,79,0.35)] shadow-sm font-semibold"
+                    : "bg-surface-raised/50 text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-surface-raised border border-transparent"
+                }`}
+              >
+                {pill.icon}
+                <span>{pill.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* Main Content Area */}
+      {loading ? (
+        <div className="py-24 flex flex-col items-center justify-center text-slate-400 space-y-3">
+          <div className="w-8 h-8 border-2 border-[rgb(240_158_79)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-mono text-slate-500">
+            Decrypting vault metadata with master key...
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Folders Section (Only in Root or folder view if folders exist) */}
+          {folders.length > 0 && selectedCategory === "all" && !searchQuery && (
+            <div className="space-y-2.5">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-mono px-1">
+                Folders ({folders.length})
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {folders.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className="p-3.5 rounded-xl bg-surface border border-surface-border hover:border-[rgba(240,158,79,0.35)] hover:bg-surface-raised/70 transition-all group flex items-center justify-between gap-2"
+                  >
+                    <button
+                      onClick={() => navigateToFolder(folder.id, folder.name)}
+                      className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
+                    >
+                      <Folder className="w-5 h-5 text-[rgb(240_158_79)] shrink-0" />
+                      <span className="text-xs font-medium text-foreground truncate group-hover:text-[rgb(240_158_79)] transition-colors">
+                        {folder.name}
+                      </span>
+                    </button>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => {
+                          setRenameFolderTarget(folder);
+                          setNewFolderRenameValue(folder.name);
+                        }}
+                        title="Rename folder"
+                        className="p-1 rounded text-slate-400 hover:text-foreground"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFolder(folder.id)}
+                        title="Delete folder"
+                        className="p-1 rounded text-slate-400 hover:text-rose-500"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Files Section */}
+          {filteredFiles.length === 0 ? (
+            <div className="py-20 text-center space-y-3 vault-card rounded-2xl p-8 bg-surface">
+              <div className="w-12 h-12 rounded-2xl bg-surface-raised border border-surface-border flex items-center justify-center mx-auto text-slate-400">
+                <FilesIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {searchQuery || selectedCategory !== "all"
+                    ? "No files match your filter"
+                    : "No files in this folder"}
+                </p>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                  {searchQuery || selectedCategory !== "all"
+                    ? "Try clearing your search query or choosing another category filter."
+                    : "Upload files directly here to encrypt and store them with client-side zero-knowledge security."}
+                </p>
+              </div>
+              <div className="pt-2 flex justify-center gap-2">
+                {searchQuery || selectedCategory !== "all" ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory("all");
+                    }}
+                    className="text-xs"
+                  >
+                    Clear Filters
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={!isUnlocked}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Upload File
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : viewMode === "list" ? (
+            /* LIST VIEW */
+            <div className="vault-card rounded-2xl border border-surface-border bg-surface overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-surface-border text-[11px] font-mono text-slate-500 bg-surface-raised/40">
+                      <th className="py-2.5 px-3 w-8">
+                        <button
+                          onClick={toggleSelectAll}
+                          className="text-slate-400 hover:text-foreground"
+                          title="Select All"
+                        >
+                          {selectedFileIds.size === filteredFiles.length && filteredFiles.length > 0 ? (
+                            <CheckSquare className="w-4 h-4 text-[rgb(240_158_79)]" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                        </button>
+                      </th>
+                      <th className="py-2.5 px-2 w-8"></th>
+                      <th className="py-2.5 px-3 font-semibold">Name</th>
+                      <th className="py-2.5 px-3 font-semibold hidden sm:table-cell">Size</th>
+                      <th className="py-2.5 px-3 font-semibold hidden md:table-cell">Uploaded</th>
+                      <th className="py-2.5 px-3 font-semibold hidden lg:table-cell">Security</th>
+                      <th className="py-2.5 px-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-border text-xs">
+                    {filteredFiles.map((file) => {
+                      const isSelected = selectedFileIds.has(file.id);
+                      const isFavorite = favoriteIds.has(file.id);
+
+                      return (
+                        <tr
+                          key={file.id}
+                          className={`hover:bg-surface-raised/50 transition-colors group ${
+                            isSelected ? "bg-[rgba(240,158,79,0.06)]" : ""
+                          }`}
+                        >
+                          {/* Selection Checkbox */}
+                          <td className="py-2.5 px-3">
+                            <button
+                              onClick={() => toggleSelectFile(file.id)}
+                              className="text-slate-400 hover:text-foreground"
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="w-4 h-4 text-[rgb(240_158_79)]" />
+                              ) : (
+                                <Square className="w-4 h-4" />
+                              )}
+                            </button>
+                          </td>
+
+                          {/* Favorite Star */}
+                          <td className="py-2.5 px-1">
+                            <button
+                              onClick={() => toggleFavorite(file.id)}
+                              title={isFavorite ? "Remove favorite" : "Mark favorite"}
+                              className="text-slate-400 hover:text-amber-400 transition-colors"
+                            >
+                              <Star
+                                className={`w-4 h-4 ${
+                                  isFavorite
+                                    ? "text-amber-400 fill-amber-400"
+                                    : "text-slate-400 hover:text-amber-400"
+                                }`}
+                              />
+                            </button>
+                          </td>
+
+                          {/* File Name & Icon */}
+                          <td className="py-2.5 px-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="p-1.5 rounded-lg bg-surface border border-surface-border shrink-0">
+                                {getFileTypeIcon(file.name, file.type)}
+                              </div>
+                              <span
+                                onClick={() => handlePreview(file)}
+                                className="font-medium text-foreground truncate cursor-pointer hover:text-[rgb(240_158_79)] transition-colors max-w-xs md:max-w-sm"
+                                title={file.name}
+                              >
+                                {file.name}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Size */}
+                          <td className="py-2.5 px-3 font-mono text-slate-500 hidden sm:table-cell whitespace-nowrap">
+                            {formatSize(file.size)}
+                          </td>
+
+                          {/* Upload Date */}
+                          <td className="py-2.5 px-3 font-mono text-slate-500 hidden md:table-cell whitespace-nowrap">
+                            {new Date(file.createdAt).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </td>
+
+                          {/* Security Badge */}
+                          <td className="py-2.5 px-3 hidden lg:table-cell whitespace-nowrap">
+                            <span className="text-[10px] font-mono font-medium text-[rgb(100_215_113)] bg-[rgba(100,215,113,0.12)] px-2 py-0.5 rounded-md border border-[rgba(100,215,113,0.25)]">
+                              AES-256-GCM
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handlePreview(file)}
+                                title="In-browser decrypted preview"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDownload(file)}
+                                title="Decrypt & Download"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-[rgb(240_158_79)] hover:bg-surface-raised transition-colors"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRenameTarget(file);
+                                  setNewRenameValue(file.name);
+                                }}
+                                title="Rename file"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors hidden sm:inline-block"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setMoveTarget(file);
+                                  setSelectedDestinationFolder(currentFolderId || "root");
+                                }}
+                                title="Move file"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors hidden sm:inline-block"
+                              >
+                                <MoveRight className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setActiveFileDetails(file)}
+                                title="File details"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
+                              >
+                                <Info className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setShareTarget(file)}
+                                title="Share file"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-foreground hover:bg-surface-raised transition-colors"
+                              >
+                                <Share2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteFile(file.id)}
+                                title="Delete file"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-surface-raised transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            /* GRID VIEW */
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+              {filteredFiles.map((file) => {
+                const isSelected = selectedFileIds.has(file.id);
+                const isFavorite = favoriteIds.has(file.id);
+
+                return (
+                  <div
+                    key={file.id}
+                    className={`vault-card rounded-2xl p-3.5 bg-surface border border-surface-border hover:border-[rgba(240,158,79,0.35)] flex flex-col justify-between space-y-3 transition-all group relative ${
+                      isSelected ? "border-[rgb(240_158_79)] bg-[rgba(240,158,79,0.05)] shadow-md" : ""
+                    }`}
+                  >
+                    {/* Top Row: Checkbox & Star */}
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => toggleSelectFile(file.id)}
+                        className="text-slate-400 hover:text-foreground"
+                      >
+                        {isSelected ? (
+                          <CheckSquare className="w-4 h-4 text-[rgb(240_158_79)]" />
+                        ) : (
+                          <Square className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => toggleFavorite(file.id)}
+                        title={isFavorite ? "Remove favorite" : "Mark favorite"}
+                      >
+                        <Star
+                          className={`w-4 h-4 transition-colors ${
+                            isFavorite
+                              ? "text-amber-400 fill-amber-400"
+                              : "text-slate-400 hover:text-amber-400 opacity-40 group-hover:opacity-100"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Preview / Center Icon */}
+                    <div
+                      onClick={() => handlePreview(file)}
+                      className="py-4 flex flex-col items-center justify-center cursor-pointer group-hover:scale-105 transition-transform"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-surface-raised border border-surface-border flex items-center justify-center text-[rgb(240_158_79)] shadow-sm">
+                        {getFileTypeIcon(file.name, file.type)}
+                      </div>
+                    </div>
+
+                    {/* Meta info */}
+                    <div className="space-y-1">
+                      <p
+                        onClick={() => handlePreview(file)}
+                        className="text-xs font-semibold text-foreground truncate cursor-pointer hover:text-[rgb(240_158_79)] transition-colors"
+                        title={file.name}
+                      >
+                        {file.name}
+                      </p>
+                      <div className="flex items-center justify-between text-[11px] font-mono text-slate-500">
+                        <span>{formatSize(file.size)}</span>
+                        <span className="text-[10px] text-[rgb(100_215_113)]">GCM</span>
+                      </div>
+                    </div>
+
+                    {/* Quick action footer */}
+                    <div className="pt-2 border-t border-surface-border flex items-center justify-between text-slate-500">
+                      <button
+                        onClick={() => handlePreview(file)}
+                        title="Preview"
+                        className="p-1 hover:text-foreground transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(file)}
+                        title="Download"
+                        className="p-1 hover:text-[rgb(240_158_79)] transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setActiveFileDetails(file)}
+                        title="Details"
+                        className="p-1 hover:text-foreground transition-colors"
+                      >
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFile(file.id)}
+                        title="Delete"
+                        className="p-1 hover:text-rose-500 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Floating Bulk Action Bar */}
+      {selectedFileIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-surface/95 backdrop-blur-xl border border-[rgba(240,158,79,0.4)] rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-4 text-xs animate-in slide-in-from-bottom-4 duration-200">
+          <div className="font-mono font-semibold text-foreground flex items-center gap-1.5">
+            <CheckSquare className="w-4 h-4 text-[rgb(240_158_79)]" />
+            <span>{selectedFileIds.size} selected</span>
+          </div>
+          <div className="h-4 w-px bg-surface-border" />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleBulkDownload}
+            className="text-xs py-1 px-2.5"
+          >
+            <Download className="w-3.5 h-3.5 mr-1 text-[rgb(240_158_79)]" /> Download All
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={handleBulkDelete}
+            className="text-xs py-1 px-2.5"
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+          </Button>
+          <button
+            onClick={() => setSelectedFileIds(new Set())}
+            className="text-slate-400 hover:text-foreground p-1"
+            title="Clear selection"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Uploading Shimmer Overlay */}
+      {uploading && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-surface border border-surface-border rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+            <div className="w-8 h-8 border-2 border-[rgb(240_158_79)] border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-foreground font-mono">
+                {uploadStatus}
+              </h3>
+              <Progress value={uploadProgress} max={100} />
+              <p className="text-[11px] text-slate-500 font-mono">
+                {uploadProgress}% Encrypted with AES-256-GCM
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Folder Modal */}
       <Dialog
         isOpen={isCreateFolderOpen}
         onClose={() => setIsCreateFolderOpen(false)}
         title="Create Encrypted Folder"
       >
-        <form onSubmit={handleCreateFolder} className="space-y-4">
-          <Input
-            label="Folder Name"
-            type="text"
-            required
-            autoFocus
-            placeholder="e.g. Confidential Documents"
-            value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-            helperText="Folder name is encrypted client-side with your Master Key"
-          />
+        <form onSubmit={handleCreateFolder} className="space-y-4 pt-2">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Folder names are encrypted client-side with fresh nonces so the server cannot read your directory structure.
+          </p>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">
+              Folder Name
+            </label>
+            <input
+              type="text"
+              required
+              autoFocus
+              placeholder="e.g. Legal Documents"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              className="w-full bg-surface border border-surface-border text-foreground text-sm rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[rgb(240_158_79)]"
+            />
+          </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="secondary" onClick={() => setIsCreateFolderOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCreateFolderOpen(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              isLoading={isCreatingFolder}
+            >
               Create Folder
             </Button>
           </div>
         </form>
       </Dialog>
 
-      {/* Dialog: Rename File */}
+      {/* Rename File Modal */}
       <Dialog
         isOpen={!!renameTarget}
         onClose={() => setRenameTarget(null)}
-        title={`Rename "${renameTarget?.name}"`}
+        title="Rename Encrypted File"
       >
-        <form onSubmit={handleRenameSubmit} className="space-y-4">
-          <Input
-            label="New File Name"
-            type="text"
-            required
-            autoFocus
-            value={newRenameValue}
-            onChange={(e) => setNewRenameValue(e.target.value)}
-            helperText="Metadata envelope is re-encrypted with your Master Key"
-          />
+        <form onSubmit={handleRenameSubmit} className="space-y-4 pt-2">
+          <p className="text-xs text-slate-500">
+            The new filename is re-encrypted in your browser before updating metadata.
+          </p>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">New Filename</label>
+            <input
+              type="text"
+              required
+              autoFocus
+              value={newRenameValue}
+              onChange={(e) => setNewRenameValue(e.target.value)}
+              className="w-full bg-surface border border-surface-border text-foreground text-sm rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[rgb(240_158_79)]"
+            />
+          </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="secondary" onClick={() => setRenameTarget(null)}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setRenameTarget(null)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="primary" size="sm">
               Save Name
             </Button>
           </div>
         </form>
       </Dialog>
 
-      {/* Dialog: Move File */}
+      {/* Rename Folder Modal */}
+      <Dialog
+        isOpen={!!renameFolderTarget}
+        onClose={() => setRenameFolderTarget(null)}
+        title="Rename Encrypted Folder"
+      >
+        <form onSubmit={handleFolderRenameSubmit} className="space-y-4 pt-2">
+          <p className="text-xs text-slate-500">
+            The updated folder name will be re-encrypted before persisting.
+          </p>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">New Folder Name</label>
+            <input
+              type="text"
+              required
+              autoFocus
+              value={newFolderRenameValue}
+              onChange={(e) => setNewFolderRenameValue(e.target.value)}
+              className="w-full bg-surface border border-surface-border text-foreground text-sm rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[rgb(240_158_79)]"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setRenameFolderTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" size="sm">
+              Save Folder Name
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Move File Modal */}
       <Dialog
         isOpen={!!moveTarget}
         onClose={() => setMoveTarget(null)}
-        title={`Move "${moveTarget?.name}"`}
+        title="Move Encrypted File"
       >
-        <form onSubmit={handleMoveFile} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-              Destination Folder
-            </label>
-            <select
-              value={selectedDestinationFolder}
-              onChange={(e) => setSelectedDestinationFolder(e.target.value)}
-              className="w-full bg-surface border border-surface-border text-foreground rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-brand-500"
-            >
-              <option value="root">Root Vault</option>
-              {folders.map((fd) => (
-                <option key={fd.id} value={fd.id}>
-                  {fd.name}
-                </option>
+        <form onSubmit={handleMoveSubmit} className="space-y-4 pt-2">
+          <p className="text-xs text-slate-500">
+            Select the destination folder for <span className="font-semibold text-foreground">{moveTarget?.name}</span>:
+          </p>
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-foreground">Destination Folder</label>
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              <label
+                className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs transition-colors ${
+                  selectedDestinationFolder === "root"
+                    ? "border-[rgb(240_158_79)] bg-[rgba(240,158,79,0.1)] text-foreground font-semibold"
+                    : "border-surface-border hover:bg-surface-raised text-slate-400"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="destinationFolder"
+                  value="root"
+                  checked={selectedDestinationFolder === "root"}
+                  onChange={() => setSelectedDestinationFolder("root")}
+                  className="hidden"
+                />
+                <Folder className="w-4 h-4 text-[rgb(240_158_79)]" />
+                <span>Root Vault</span>
+              </label>
+
+              {folders.map((f) => (
+                <label
+                  key={f.id}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs transition-colors ${
+                    selectedDestinationFolder === f.id
+                      ? "border-[rgb(240_158_79)] bg-[rgba(240,158,79,0.1)] text-foreground font-semibold"
+                      : "border-surface-border hover:bg-surface-raised text-slate-400"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="destinationFolder"
+                    value={f.id}
+                    checked={selectedDestinationFolder === f.id}
+                    onChange={() => setSelectedDestinationFolder(f.id)}
+                    className="hidden"
+                  />
+                  <Folder className="w-4 h-4 text-[rgb(240_158_79)]" />
+                  <span>{f.name}</span>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="secondary" onClick={() => setMoveTarget(null)}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMoveTarget(null)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="primary" size="sm" isLoading={isMoving}>
               Move File
             </Button>
           </div>
         </form>
       </Dialog>
 
-      {/* Dialog: Share File */}
-      <Dialog
-        isOpen={!!shareTarget}
-        onClose={() => setShareTarget(null)}
-        title={`Share "${shareTarget?.name}"`}
-      >
-        <div className="space-y-4 text-xs">
-          <p className="text-slate-600 dark:text-slate-400">
-            Generate an authenticated workspace reference for this encrypted file. Note that recipients must be authorized local vault users with appropriate key access.
-          </p>
-          <div className="p-3 bg-surface-raised rounded-lg border border-surface-border flex items-center justify-between gap-2">
-            <span className="font-mono text-[11px] truncate text-slate-500">
-              {typeof window !== "undefined" ? `${window.location.origin}/dashboard/files?focus=${shareTarget?.id}` : ""}
-            </span>
-            <Button type="button" variant="secondary" size="sm" onClick={copyShareLink}>
-              {copiedShare ? "Copied!" : "Copy Link"}
-            </Button>
-          </div>
-          <div className="flex justify-end pt-2">
-            <Button type="button" variant="secondary" onClick={() => setShareTarget(null)}>
-              Done
-            </Button>
-          </div>
-        </div>
-      </Dialog>
-
-      {/* Dialog: In-Browser File Preview */}
-      <Dialog
-        isOpen={!!previewTarget}
-        onClose={closePreview}
-        title={`Preview: ${previewTarget?.name}`}
-      >
-        <div className="space-y-4 text-xs">
-          {previewLoading ? (
-            <div className="py-12 text-center text-slate-500 font-mono">
-              Decrypting file in browser RAM...
-            </div>
-          ) : previewUrl ? (
-            <div className="max-h-96 overflow-auto rounded-lg border border-surface-border flex items-center justify-center bg-surface-raised p-2">
-              <img
-                src={previewUrl}
-                alt={previewTarget?.name}
-                className="max-h-80 max-w-full rounded object-contain"
-              />
-            </div>
-          ) : previewTextContent !== null ? (
-            <div className="max-h-96 overflow-auto rounded-lg border border-surface-border bg-surface-raised p-3 font-mono text-[11px] leading-relaxed text-foreground whitespace-pre-wrap">
-              {previewTextContent}
-            </div>
-          ) : (
-            <div className="p-6 text-center space-y-2 bg-surface-raised rounded-lg border border-surface-border">
-              <FileIcon className="w-8 h-8 text-slate-400 mx-auto" />
-              <p className="text-slate-600 dark:text-slate-400">
-                Direct in-browser preview is not available for this MIME type ({previewTarget?.type}).
-              </p>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => previewTarget && handleDownload(previewTarget)}
-              >
-                <Download className="w-3.5 h-3.5 mr-1" /> Download Decrypted File
-              </Button>
-            </div>
-          )}
-
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-slate-400 font-mono text-[11px]">
-              {previewTarget && formatSize(previewTarget.size || previewTarget.ciphertextSize)}
-            </span>
-            <Button type="button" variant="secondary" onClick={closePreview}>
-              Close
-            </Button>
-          </div>
-        </div>
-      </Dialog>
-
-      {/* Dialog: Cryptographic Details */}
+      {/* File Details Modal */}
       <Dialog
         isOpen={!!activeFileDetails}
         onClose={() => setActiveFileDetails(null)}
-        title="Cryptographic Object Details"
+        title="Encrypted File Metadata"
       >
         {activeFileDetails && (
-          <div className="space-y-4 text-xs">
-            <div className="p-3 bg-surface-raised rounded-lg border border-surface-border font-mono space-y-2">
-              <div>
-                <span className="text-slate-400">File ID: </span>
-                <span className="text-foreground">{activeFileDetails.id}</span>
-              </div>
-              <div>
-                <span className="text-slate-400">Ciphertext Size: </span>
-                <span className="text-foreground">
-                  {activeFileDetails.ciphertextSize} bytes
+          <div className="space-y-4 pt-2">
+            <div className="p-3.5 rounded-xl bg-surface-raised border border-surface-border space-y-2 text-xs font-mono">
+              <div className="flex justify-between border-b border-surface-border/60 pb-1.5">
+                <span className="text-slate-500">Decrypted Name:</span>
+                <span className="text-foreground font-semibold truncate max-w-[200px]">
+                  {activeFileDetails.name}
                 </span>
               </div>
-              <div>
-                <span className="text-slate-400">Wrapping Nonce (Base64): </span>
-                <span className="text-brand-500 break-all">
-                  {activeFileDetails.fileKeyWrappingNonce}
+              <div className="flex justify-between border-b border-surface-border/60 pb-1.5">
+                <span className="text-slate-500">File Size:</span>
+                <span className="text-foreground">{formatSize(activeFileDetails.size)}</span>
+              </div>
+              <div className="flex justify-between border-b border-surface-border/60 pb-1.5">
+                <span className="text-slate-500">MIME Type:</span>
+                <span className="text-foreground truncate max-w-[200px]">
+                  {activeFileDetails.type || "application/octet-stream"}
                 </span>
               </div>
-              <div>
-                <span className="text-slate-400">File AES-GCM Nonce: </span>
-                <span className="text-brand-500 break-all">
-                  {activeFileDetails.fileEncryptionNonce}
+              <div className="flex justify-between border-b border-surface-border/60 pb-1.5">
+                <span className="text-slate-500">Encryption Scheme:</span>
+                <span className="text-[rgb(100_215_113)]">AES-256-GCM (Authenticated)</span>
+              </div>
+              <div className="flex justify-between border-b border-surface-border/60 pb-1.5">
+                <span className="text-slate-500">Format Version:</span>
+                <span className="text-foreground">v1 (Zero-Knowledge)</span>
+              </div>
+              <div className="flex justify-between border-b border-surface-border/60 pb-1.5">
+                <span className="text-slate-500">Encrypted File ID:</span>
+                <span className="text-slate-400 font-mono text-[11px] truncate max-w-[200px]">
+                  {activeFileDetails.id}
                 </span>
               </div>
-              <div>
-                <span className="text-slate-400">Metadata Nonce: </span>
-                <span className="text-brand-500 break-all">
-                  {activeFileDetails.metadataNonce}
+              <div className="flex justify-between">
+                <span className="text-slate-500">Uploaded Date:</span>
+                <span className="text-slate-400">
+                  {new Date(activeFileDetails.createdAt).toLocaleString()}
                 </span>
               </div>
             </div>
 
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>
-                The server stores only ciphertext and the wrapped key envelope. Plaintext keys exist strictly in browser RAM.
-              </span>
-            </div>
-
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end gap-2 pt-2 border-t border-surface-border">
               <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setActiveFileDetails(null)}
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  handleDownload(activeFileDetails);
+                }}
               >
-                Close
+                <Download className="w-3.5 h-3.5 mr-1.5" /> Decrypt & Download
               </Button>
             </div>
           </div>
         )}
+      </Dialog>
+
+      {/* Share Modal */}
+      <Dialog
+        isOpen={!!shareTarget}
+        onClose={() => {
+          setShareTarget(null);
+          setCopiedShare(false);
+        }}
+        title="Zero-Knowledge Secure Share"
+      >
+        {shareTarget && (
+          <div className="space-y-4 pt-2">
+            <p className="text-xs text-slate-500">
+              Files are zero-knowledge encrypted on the server. To share{" "}
+              <span className="font-semibold text-foreground">{shareTarget.name}</span>, a secure reference link is generated:
+            </p>
+
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-surface-raised border border-surface-border text-xs font-mono">
+              <input
+                type="text"
+                readOnly
+                value={typeof window !== "undefined" ? `${window.location.origin}/dashboard/files?shared=${shareTarget.id}` : ""}
+                className="w-full bg-transparent text-slate-400 focus:outline-none"
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/dashboard/files?shared=${shareTarget.id}`
+                  );
+                  setCopiedShare(true);
+                  setTimeout(() => setCopiedShare(false), 2000);
+                }}
+                className="py-1 px-2.5 text-xs shrink-0"
+              >
+                {copiedShare ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400 mr-1" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 mr-1" /> Copy Link
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 space-y-1">
+              <div className="font-semibold flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-amber-500" /> End-to-End Encryption Note
+              </div>
+              <p>
+                Recipients must have an authorized CloudVault session and possess decryption credentials to read the file contents.
+              </p>
+            </div>
+          </div>
+        )}
+      </Dialog>
+
+      {/* In-browser Preview Modal */}
+      <Dialog
+        isOpen={!!previewTarget}
+        onClose={closePreview}
+        title={previewTarget?.name || "File Preview"}
+      >
+        <div className="space-y-4 pt-2">
+          {previewLoading ? (
+            <div className="py-16 flex flex-col items-center justify-center text-slate-400 space-y-3">
+              <div className="w-6 h-6 border-2 border-[rgb(240_158_79)] border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs font-mono text-slate-500">
+                Fetching ciphertext and decrypting in browser...
+              </p>
+            </div>
+          ) : previewUrl ? (
+            <div className="rounded-xl overflow-hidden border border-surface-border bg-black/40 flex items-center justify-center max-h-[60vh]">
+              <img
+                src={previewUrl}
+                alt={previewTarget?.name}
+                className="max-h-[60vh] max-w-full object-contain"
+              />
+            </div>
+          ) : previewTextContent !== null ? (
+            <div className="rounded-xl overflow-hidden border border-surface-border bg-surface-raised p-3.5 max-h-[60vh] overflow-y-auto">
+              <pre className="text-xs font-mono text-foreground whitespace-pre-wrap font-sans">
+                {previewTextContent}
+              </pre>
+            </div>
+          ) : (
+            <div className="py-12 text-center space-y-2">
+              <div className="w-12 h-12 rounded-xl bg-surface-raised border border-surface-border flex items-center justify-center mx-auto text-slate-400">
+                <FileIcon className="w-6 h-6" />
+              </div>
+              <p className="text-xs font-medium text-foreground">
+                In-browser preview is not available for this binary file format.
+              </p>
+              <p className="text-[11px] text-slate-500">
+                You can download and decrypt the original file directly.
+              </p>
+            </div>
+          )}
+
+          {previewTarget && (
+            <div className="p-3 rounded-xl bg-surface-raised border border-surface-border text-[11px] font-mono space-y-1 text-slate-500">
+              <div className="flex justify-between">
+                <span>File Size:</span>
+                <span className="text-foreground">{formatSize(previewTarget.size)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Encryption:</span>
+                <span className="text-[rgb(100_215_113)]">AES-256-GCM (Authenticated)</span>
+              </div>
+              <div className="flex justify-between">
+                <span>MIME Type:</span>
+                <span className="text-foreground truncate max-w-[200px]">
+                  {previewTarget.type || "application/octet-stream"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-surface-border">
+            {previewTarget && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  if (previewTarget) handleDownload(previewTarget);
+                }}
+              >
+                <Download className="w-3.5 h-3.5 mr-1.5" /> Decrypt & Download
+              </Button>
+            )}
+          </div>
+        </div>
       </Dialog>
     </div>
   );

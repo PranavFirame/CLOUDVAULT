@@ -12,6 +12,8 @@ import {
   User,
   KeyRound,
   Lock,
+  Search,
+  X,
 } from "lucide-react";
 import { useVault } from "../../lib/crypto/vault-context";
 import { useTheme } from "../../components/theme-provider";
@@ -26,11 +28,19 @@ export function Navbar({
   const { status, isUnlocked, lockVault } = useVault();
   const { resolvedTheme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [navSearchQuery, setNavSearchQuery] = useState("");
 
   const handleLogout = async () => {
     lockVault();
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/login";
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (navSearchQuery.trim()) {
+      window.location.href = `/dashboard/files?q=${encodeURIComponent(navSearchQuery.trim())}`;
+    }
   };
 
   return (
@@ -57,6 +67,32 @@ export function Navbar({
           </div>
         </Link>
       </div>
+
+      {/* Global Quick Search (Desktop) */}
+      <form
+        onSubmit={handleSearchSubmit}
+        className="hidden md:flex items-center flex-1 max-w-md mx-4"
+      >
+        <div className="relative w-full">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search encrypted files & folders..."
+            value={navSearchQuery}
+            onChange={(e) => setNavSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-8 py-1.5 bg-surface-raised/70 border border-surface-border rounded-xl text-xs text-foreground placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[rgb(240_158_79)] focus:border-[rgb(240_158_79)] transition-all"
+          />
+          {navSearchQuery && (
+            <button
+              type="button"
+              onClick={() => setNavSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      </form>
 
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Vault Status Indicator */}
@@ -127,14 +163,14 @@ export function Navbar({
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-surface border border-surface-border rounded-2xl shadow-2xl py-1 z-50 text-xs backdrop-blur-xl">
+            <div className="absolute right-0 mt-2 w-48 bg-surface border border-surface-border rounded-2xl shadow-2xl py-1 z-50 text-xs backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
               <div className="px-3 py-2 border-b border-surface-border font-medium text-slate-500 truncate">
                 {userEmail}
               </div>
               <Link
                 href="/dashboard/settings"
                 onClick={() => setDropdownOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-surface-raised text-slate-700 dark:text-slate-300"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-surface-raised text-slate-700 dark:text-slate-300 transition-colors"
               >
                 <User className="w-3.5 h-3.5 text-[rgb(240_158_79)]" /> Account Settings
               </Link>
@@ -143,7 +179,7 @@ export function Navbar({
                   setDropdownOpen(false);
                   handleLogout();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface-raised text-rose-500 text-left"
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface-raised text-rose-500 text-left transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" /> Sign Out
               </button>
