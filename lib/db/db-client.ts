@@ -1,6 +1,3 @@
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 
 // Global Prisma instance for standard PostgreSQL operation
@@ -14,7 +11,16 @@ export const prisma =
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-// Local fallback store to ensure 100% functionality even when Docker PostgreSQL is offline
+// In production (Render + Neon), always use Prisma/PostgreSQL directly.
+// The local JSON fallback is only for local dev when Docker Postgres is offline.
+const USE_LOCAL_FALLBACK =
+  process.env.NODE_ENV !== "production" && !process.env.DATABASE_URL;
+
+// ─── Local JSON fallback (dev-only, no DATABASE_URL) ─────────────────────────
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
+
 interface LocalStore {
   users: Array<{
     id: string;
@@ -124,34 +130,16 @@ function saveLocalStore(store: LocalStore): void {
   fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(store, null, 2), "utf-8");
 }
 
-let pgAvailable: boolean | null = null;
-
-async function isPgAvailable(): Promise<boolean> {
-  if (pgAvailable !== null) return pgAvailable;
-  try {
-    // Quick probe with timeout
-    const timeout = new Promise<boolean>((_, reject) =>
-      setTimeout(() => reject(new Error("Timeout")), 800)
-    );
-    await Promise.race([prisma.$queryRaw`SELECT 1`, timeout]);
-    pgAvailable = true;
-    return true;
-  } catch {
-    pgAvailable = false;
-    return false;
-  }
-}
+// ─── Unified db interface ─────────────────────────────────────────────────────
 
 export const db = {
   async createUser(data: { email: string; passwordHash: string }) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.user.create({ data });
     }
     const store = getLocalStore();
     const existing = store.users.find((u) => u.email.toLowerCase() === data.email.toLowerCase());
-    if (existing) {
-      throw new Error("User already exists");
-    }
+    if (existing) throw new Error("User already exists");
     const newUser = {
       id: crypto.randomUUID(),
       email: data.email.toLowerCase(),
@@ -166,17 +154,15 @@ export const db = {
   },
 
   async findUserByEmail(email: string) {
-    if (await isPgAvailable()) {
-      return await prisma.user.findUnique({
-        where: { email: email.toLowerCase() },
-      });
+    if (!USE_LOCAL_FALLBACK) {
+      return await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     }
     const store = getLocalStore();
     return store.users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
   },
 
   async findUserById(id: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.user.findUnique({ where: { id } });
     }
     const store = getLocalStore();
@@ -184,11 +170,8 @@ export const db = {
   },
 
   async updateUserPassword(id: string, passwordHash: string) {
-    if (await isPgAvailable()) {
-      return await prisma.user.update({
-        where: { id },
-        data: { passwordHash, updatedAt: new Date() },
-      });
+    if (!USE_LOCAL_FALLBACK) {
+      return await prisma.user.update({ where: { id }, data: { passwordHash, updatedAt: new Date() } });
     }
     const store = getLocalStore();
     const user = store.users.find((u) => u.id === id);
@@ -200,7 +183,7 @@ export const db = {
   },
 
   async createSession(data: { userId: string; sessionTokenHash: string; expiresAt: Date }) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.session.create({
         data: {
           userId: data.userId,
@@ -224,7 +207,7 @@ export const db = {
   },
 
   async findSessionByTokenHash(tokenHash: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       const sess = await prisma.session.findUnique({
         where: { sessionTokenHash: tokenHash },
         include: { user: true },
@@ -243,11 +226,8 @@ export const db = {
   },
 
   async revokeSession(id: string, userId: string) {
-    if (await isPgAvailable()) {
-      return await prisma.session.updateMany({
-        where: { id, userId },
-        data: { revokedAt: new Date() },
-      });
+    if (!USE_LOCAL_FALLBACK) {
+      return await prisma.session.updateMany({ where: { id, userId }, data: { revokedAt: new Date() } });
     }
     const store = getLocalStore();
     const sess = store.sessions.find((s) => s.id === id && s.userId === userId);
@@ -258,7 +238,7 @@ export const db = {
   },
 
   async listUserSessions(userId: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.session.findMany({
         where: { userId, revokedAt: null },
         orderBy: { createdAt: "desc" },
@@ -267,11 +247,7 @@ export const db = {
     const store = getLocalStore();
     return store.sessions
       .filter((s) => s.userId === userId && !s.revokedAt && new Date(s.expiresAt) > new Date())
-      .map((s) => ({
-        ...s,
-        createdAt: new Date(s.createdAt),
-        expiresAt: new Date(s.expiresAt),
-      }));
+      .map((s) => ({ ...s, createdAt: new Date(s.createdAt), expiresAt: new Date(s.expiresAt) }));
   },
 
   async saveVaultKey(data: {
@@ -284,7 +260,7 @@ export const db = {
     encryptedRecoveryKey: string;
     recoveryNonce: string;
   }) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.vaultKey.upsert({
         where: { userId: data.userId },
         update: {
@@ -324,17 +300,14 @@ export const db = {
       createdAt: idx >= 0 ? store.vaultKeys[idx].createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    if (idx >= 0) {
-      store.vaultKeys[idx] = item;
-    } else {
-      store.vaultKeys.push(item);
-    }
+    if (idx >= 0) store.vaultKeys[idx] = item;
+    else store.vaultKeys.push(item);
     saveLocalStore(store);
     return item;
   },
 
   async getVaultKey(userId: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.vaultKey.findUnique({ where: { userId } });
     }
     const store = getLocalStore();
@@ -347,7 +320,7 @@ export const db = {
     encryptedFolderName: string;
     nameNonce: string;
   }) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.folder.create({ data });
     }
     const store = getLocalStore();
@@ -366,7 +339,7 @@ export const db = {
   },
 
   async listFolders(ownerId: string, parentFolderId?: string | null) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.folder.findMany({
         where: {
           ownerId,
@@ -382,15 +355,11 @@ export const db = {
         if (parentFolderId === undefined) return true;
         return (f.parentFolderId || null) === (parentFolderId || null);
       })
-      .map((f) => ({
-        ...f,
-        createdAt: new Date(f.createdAt),
-        updatedAt: new Date(f.updatedAt),
-      }));
+      .map((f) => ({ ...f, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt) }));
   },
 
   async getFolderById(id: string, ownerId: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.folder.findFirst({ where: { id, ownerId } });
     }
     const store = getLocalStore();
@@ -400,7 +369,7 @@ export const db = {
   },
 
   async deleteFolder(id: string, ownerId: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.folder.deleteMany({ where: { id, ownerId } });
     }
     const store = getLocalStore();
@@ -409,7 +378,7 @@ export const db = {
   },
 
   async renameFolder(id: string, ownerId: string, encryptedFolderName: string, nameNonce: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.folder.updateMany({
         where: { id, ownerId },
         data: { encryptedFolderName, nameNonce, updatedAt: new Date() },
@@ -439,7 +408,7 @@ export const db = {
   }) {
     const sizeBigInt = BigInt(data.ciphertextSizeBytes);
     const fileId = data.id || crypto.randomUUID();
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.file.create({
         data: {
           id: fileId,
@@ -480,7 +449,7 @@ export const db = {
 
   async updateFileStatus(id: string, ownerId: string, uploadStatus: string, actualSize?: number | bigint) {
     const sizeUpdate = actualSize !== undefined ? BigInt(actualSize) : undefined;
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.file.updateMany({
         where: { id, ownerId },
         data: {
@@ -501,7 +470,7 @@ export const db = {
   },
 
   async listFiles(ownerId: string, folderId?: string | null) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       const records = await prisma.file.findMany({
         where: {
           ownerId,
@@ -510,10 +479,7 @@ export const db = {
         },
         orderBy: { createdAt: "desc" },
       });
-      return records.map((r) => ({
-        ...r,
-        ciphertextSizeBytes: Number(r.ciphertextSizeBytes),
-      }));
+      return records.map((r) => ({ ...r, ciphertextSizeBytes: Number(r.ciphertextSizeBytes) }));
     }
     const store = getLocalStore();
     return store.files
@@ -531,7 +497,7 @@ export const db = {
   },
 
   async getFileById(id: string, ownerId: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       const r = await prisma.file.findFirst({ where: { id, ownerId } });
       if (!r) return null;
       return { ...r, ciphertextSizeBytes: Number(r.ciphertextSizeBytes) };
@@ -552,7 +518,7 @@ export const db = {
     ownerId: string,
     data: { encryptedMetadata?: string; metadataNonce?: string; folderId?: string | null }
   ) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.file.updateMany({
         where: { id, ownerId },
         data: {
@@ -575,7 +541,7 @@ export const db = {
   },
 
   async deleteFile(id: string, ownerId: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.file.deleteMany({ where: { id, ownerId } });
     }
     const store = getLocalStore();
@@ -584,7 +550,7 @@ export const db = {
   },
 
   async getUserStorageUsed(ownerId: string): Promise<number> {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       const agg = await prisma.file.aggregate({
         where: { ownerId, uploadStatus: "COMPLETED" },
         _sum: { ciphertextSizeBytes: true },
@@ -604,7 +570,7 @@ export const db = {
     ipAddress?: string | null;
   }) {
     const detailsStr = JSON.stringify(data.details);
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.auditEvent.create({
         data: {
           userId: data.userId || null,
@@ -629,7 +595,7 @@ export const db = {
   },
 
   async listAuditEvents(userId: string) {
-    if (await isPgAvailable()) {
+    if (!USE_LOCAL_FALLBACK) {
       return await prisma.auditEvent.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
